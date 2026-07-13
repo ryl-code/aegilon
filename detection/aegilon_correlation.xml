@@ -1,0 +1,24 @@
+<!--
+  - AEGILON Correlation Detection Pack
+  - Focus: Correlation Pack Status and Information
+  - Version: 1.4
+  - Note: All behavior correlation rules have been moved to the Python Detection Engine
+  - due to Wazuh's alphabetical loading order limitations for cross-file dependencies.
+-->
+
+<group name="osquery,aegilon_correlation,">
+
+  <!--
+    Rule ID: 160001
+    Purpose: Aturan informasi untuk menandakan pemuatan AEGILON Correlation Detection Pack.
+    MITRE Technique: None
+    Expected Detection: Pemuatan ruleset
+  -->
+  <rule id="160001" level="1">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^aegilon_correlation_info$</field>
+    <description>AEGILON - Correlation Pack Loaded Successfully</description>
+    <group>info,</group>
+  </rule>
+
+</group>

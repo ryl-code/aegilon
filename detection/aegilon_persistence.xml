@@ -1,0 +1,362 @@
+<!--
+  - AEGILON Persistence Detection Pack
+  - Focus: Persistence-related detections based on Osquery services, scheduled_tasks, registry, startup_items, and file_events
+  - Version: 1.2
+  - Rules ID: 130001 - 130020
+-->
+
+<group name="osquery,aegilon_persistence,">
+
+  <!--
+    Rule ID: 130001
+    Purpose: Mendeteksi pembuatan Scheduled Task baru.
+    MITRE Technique: T1053.005
+    Expected Detection: Penambahan entry pada scheduled_tasks
+  -->
+  <rule id="130001" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^scheduled_tasks$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Scheduled Task Created</description>
+    <group>persistence,scheduled_task,</group>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130002
+    Purpose: Mendeteksi modifikasi Scheduled Task yang sudah ada.
+    MITRE Technique: T1053.005
+    Expected Detection: Perubahan status atau aksi remove diikuti add pada scheduled_tasks
+  -->
+  <rule id="130002" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^scheduled_tasks$</field>
+    <!-- Pada differential query, modifikasi terdeteksi dari status modifikasi atau remove+add -->
+    <field name="osquery.action">^removed$</field>
+    <description>AEGILON - Scheduled Task Modified</description>
+    <group>persistence,scheduled_task,</group>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130003
+    Purpose: Mendeteksi modifikasi pada key Registry Run untuk persistence.
+    MITRE Technique: T1547.001
+    Expected Detection: Penambahan nilai pada HKLM/HKCU...\\CurrentVersion\\Run
+  -->
+  <rule id="130003" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^registry$</field>
+    <field name="osquery.columns.key" type="pcre2">(?i)CurrentVersion\\Run$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Registry Run Modified</description>
+    <group>persistence,registry,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130004
+    Purpose: Mendeteksi modifikasi pada key Registry RunOnce untuk persistence sekali jalan.
+    MITRE Technique: T1547.001
+    Expected Detection: Penambahan nilai pada HKLM/HKCU...\\CurrentVersion\\RunOnce
+  -->
+  <rule id="130004" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^registry$</field>
+    <field name="osquery.columns.key" type="pcre2">(?i)CurrentVersion\\RunOnce$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Registry RunOnce Modified</description>
+    <group>persistence,registry,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130005
+    Purpose: Mendeteksi pembuatan service Windows baru.
+    MITRE Technique: T1543
+    Expected Detection: Penambahan service baru pada tabel services
+  -->
+  <rule id="130005" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^services$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - New Windows Service</description>
+    <group>persistence,service,</group>
+    <mitre>
+      <id>T1543</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130006
+    Purpose: Mendeteksi modifikasi konfigurasi service Windows yang ada.
+    MITRE Technique: T1543
+    Expected Detection: Perubahan status service atau binpath pada services
+  -->
+  <rule id="130006" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^services$</field>
+    <field name="osquery.columns.status">^changed$</field>
+    <description>AEGILON - Windows Service Modified</description>
+    <group>persistence,service,</group>
+    <mitre>
+      <id>T1543</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130007
+    Purpose: Mendeteksi service yang diubah konfigurasinya menjadi berjalan otomatis (Auto Start).
+    MITRE Technique: T1543
+    Expected Detection: Service Auto Start ditambahkan
+  -->
+  <rule id="130007" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^services$</field>
+    <field name="osquery.columns.start_type" type="pcre2">(?i)(AUTO_START|SYSTEM_START|BOOT_START)</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Service Auto Start</description>
+    <group>persistence,service,</group>
+    <mitre>
+      <id>T1543</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130008
+    Purpose: Mendeteksi perubahan berkas pada folder Startup Windows.
+    MITRE Technique: T1547.001
+    Expected Detection: Penulisan file di folder Startup
+  -->
+  <rule id="130008" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^file_events$</field>
+    <field name="osquery.columns.target_path" type="pcre2">(?i)\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\</field>
+    <description>AEGILON - Startup Folder Modified</description>
+    <group>persistence,startup,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130009
+    Purpose: Mendeteksi penambahan file executable (.exe) pada Startup Items.
+    MITRE Technique: T1547.001
+    Expected Detection: Penambahan entry executable pada startup_items
+  -->
+  <rule id="130009" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^startup_items$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)\.exe$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Startup Executable Added</description>
+    <group>persistence,startup,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130010
+    Purpose: Mendeteksi penambahan script (.ps1, .bat, .vbs, .js) pada Startup Items.
+    MITRE Technique: T1547.001
+    Expected Detection: Penambahan entry script pada startup_items
+  -->
+  <rule id="130010" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^startup_items$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)\.(ps1|bat|vbs|js|cmd)$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Startup Script Added</description>
+    <group>persistence,startup,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130011
+    Purpose: Mendeteksi modifikasi pada registry Shell Folders yang mempengaruhi autorun.
+    MITRE Technique: T1547.001
+    Expected Detection: Penambahan key shell folders yang diarahkan ke folder non-standard
+  -->
+  <rule id="130011" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^registry$</field>
+    <field name="osquery.columns.key" type="pcre2">(?i)CurrentVersion\\Explorer\\(User )?Shell Folders$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Autorun Modified</description>
+    <group>persistence,autorun,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130012
+    Purpose: Mendeteksi pembuatan WMI Event Subscription (WMI Persistence).
+    MITRE Technique: T1546.003
+    Expected Detection: Penambahan pada wmi_event_filters atau binding
+  -->
+  <rule id="130012" level="15">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name" type="pcre2">^(wmi_event_filters|wmi_filter_consumer_bindings)$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - WMI Event Subscription</description>
+    <group>persistence,wmi,</group>
+    <mitre>
+      <id>T1546.003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130013
+    Purpose: Mendeteksi pembuatan WMI Event Consumer baru.
+    MITRE Technique: T1546.003
+    Expected Detection: Penambahan pada wmi_event_consumers
+  -->
+  <rule id="130013" level="15">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^wmi_event_consumers$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - WMI Event Consumer</description>
+    <group>persistence,wmi,</group>
+    <mitre>
+      <id>T1546.003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130014
+    Purpose: Mendeteksi eksploitasi Image File Execution Options (IFEO) untuk persistence/execution hijacking.
+    MITRE Technique: T1546.012
+    Expected Detection: Penulisan di registry key Image File Execution Options
+  -->
+  <rule id="130014" level="15">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^registry$</field>
+    <field name="osquery.columns.key" type="pcre2">(?i)Image File Execution Options</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Registry IFEO Modified</description>
+    <group>persistence,registry,ifeo,</group>
+    <mitre>
+      <id>T1546.012</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130015
+    Purpose: Mendeteksi modifikasi shell registry (Winlogon Helper).
+    MITRE Technique: T1547.001
+    Expected Detection: Perubahan nilai Shell/Userinit pada Winlogon
+  -->
+  <rule id="130015" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^registry$</field>
+    <field name="osquery.columns.key" type="pcre2">(?i)CurrentVersion\\Winlogon$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^(shell|userinit)$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Registry Shell Modified</description>
+    <group>persistence,registry,winlogon,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130016
+    Purpose: Mendeteksi modifikasi konfigurasi BCD (Boot Configuration Data) untuk persistensi level boot.
+    MITRE Technique: T1542.003
+    Expected Detection: Perubahan registry di path BCD
+  -->
+  <rule id="130016" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^registry$</field>
+    <field name="osquery.columns.key" type="pcre2">(?i)\\BCD\\</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Boot Configuration Modified</description>
+    <group>persistence,boot_config,</group>
+    <mitre>
+      <id>T1542.003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130017
+    Purpose: Mendeteksi instalasi driver kernel/system baru yang mencurigakan.
+    MITRE Technique: T1543.003
+    Expected Detection: Driver baru ditambahkan pada services
+  -->
+  <rule id="130017" level="15">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^services$</field>
+    <field name="osquery.columns.service_type" type="pcre2">(?i)(driver)$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - New Driver Installed</description>
+    <group>persistence,driver,</group>
+    <mitre>
+      <id>T1543.003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130018
+    Purpose: Mendeteksi service baru yang lokasinya berjalan dari folder tidak standar (Temp/Downloads/Userprofile).
+    MITRE Technique: T1543
+    Expected Detection: Path service mengarah ke Temp/Users/Downloads
+  -->
+  <rule id="130018" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^services$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)(temp|users|appdata|downloads)</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Suspicious Service Binary</description>
+    <group>persistence,service,suspicious_binary,</group>
+    <mitre>
+      <id>T1543</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130019
+    Purpose: Mendeteksi startup item yang lokasinya berjalan dari folder tidak standar.
+    MITRE Technique: T1547.001
+    Expected Detection: Startup path mengarah ke Temp/AppData/Downloads
+  -->
+  <rule id="130019" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^startup_items$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)(temp|appdata|downloads|users\\Public)</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Unknown Startup Binary</description>
+    <group>persistence,startup,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 130020
+    Purpose: Korelasi pendeteksian beberapa teknik persistence dalam jangka waktu singkat.
+    MITRE Technique: T1547
+    Expected Detection: Terjadi 3 kali alert persistence dalam waktu 120 detik
+  -->
+  <rule id="130020" level="15" frequency="3" timeframe="120">
+    <if_matched_group>aegilon_persistence</if_matched_group>
+    <description>AEGILON - Multiple Persistence Techniques</description>
+    <group>persistence,correlation,</group>
+    <mitre>
+      <id>T1547</id>
+    </mitre>
+  </rule>
+
+</group>

@@ -1,0 +1,329 @@
+<!--
+  - AEGILON File Integrity Detection Pack
+  - Focus: File integrity-related detections based on Wazuh File Integrity Monitoring (Syscheck)
+  - Version: 1.2
+  - Rules ID: 150001 - 150020
+-->
+
+<group name="syscheck,aegilon_file,">
+
+  <!--
+    Rule ID: 150001
+    Purpose: Mendeteksi perubahan pada file hosts Windows.
+    MITRE Technique: T1565
+    Expected Detection: Modifikasi berkas hosts
+  -->
+  <rule id="150001" level="10">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(?i)System32\\drivers\\etc\\hosts$</field>
+    <description>AEGILON - Hosts File Modified</description>
+    <group>critical_file,hosts,</group>
+    <mitre>
+      <id>T1565</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150002
+    Purpose: Mendeteksi perubahan pada Security Account Manager (SAM) database.
+    MITRE Technique: T1003
+    Expected Detection: Modifikasi berkas SAM
+  -->
+  <rule id="150002" level="15">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(?i)System32\\Config\\SAM$</field>
+    <description>AEGILON - SAM File Modified</description>
+    <group>credential_access,sam,</group>
+    <mitre>
+      <id>T1003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150003
+    Purpose: Mendeteksi perubahan pada registry hive SYSTEM.
+    MITRE Technique: T1003
+    Expected Detection: Modifikasi berkas SYSTEM hive
+  -->
+  <rule id="150003" level="15">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(?i)System32\\Config\\SYSTEM$</field>
+    <description>AEGILON - SYSTEM Hive Modified</description>
+    <group>critical_file,system_hive,</group>
+    <mitre>
+      <id>T1003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150004
+    Purpose: Mendeteksi perubahan pada registry hive SECURITY.
+    MITRE Technique: T1003
+    Expected Detection: Modifikasi berkas SECURITY hive
+  -->
+  <rule id="150004" level="15">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(?i)System32\\Config\\SECURITY$</field>
+    <description>AEGILON - SECURITY Hive Modified</description>
+    <group>critical_file,security_hive,</group>
+    <mitre>
+      <id>T1003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150005
+    Purpose: Mendeteksi perubahan pada registry hive SOFTWARE.
+    MITRE Technique: T1565
+    Expected Detection: Modifikasi berkas SOFTWARE hive
+  -->
+  <rule id="150005" level="13">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(?i)System32\\Config\\SOFTWARE$</field>
+    <description>AEGILON - SOFTWARE Hive Modified</description>
+    <group>critical_file,software_hive,</group>
+    <mitre>
+      <id>T1565</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150006
+    Purpose: Mendeteksi modifikasi pada folder Startup Windows (FIM).
+    MITRE Technique: T1547.001
+    Expected Detection: Modifikasi file/folder di path Startup
+  -->
+  <rule id="150006" level="10">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(?i)\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\</field>
+    <description>AEGILON - Startup Folder Modified</description>
+    <group>persistence,startup,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150007
+    Purpose: Mendeteksi file executable (.exe) yang ditambahkan ke folder Startup.
+    MITRE Technique: T1547.001
+    Expected Detection: Penambahan berkas exe ke Startup
+  -->
+  <rule id="150007" level="13">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\.*\.exe$</field>
+    <description>AEGILON - Executable Added to Startup</description>
+    <group>persistence,startup,</group>
+    <mitre>
+      <id>T1547.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150008
+    Purpose: Mendeteksi penonaktifan Windows Defender lewat manipulasi file binary utamanya.
+    MITRE Technique: T1562.001
+    Expected Detection: Modifikasi berkas MsMpEng.exe atau MpCmdRun.exe
+  -->
+  <rule id="150008" level="15">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(?i)Program Files\\Windows Defender\\(MsMpEng\.exe|MpCmdRun\.exe)</field>
+    <description>AEGILON - Windows Defender Disabled</description>
+    <group>defense_evasion,defender,</group>
+    <mitre>
+      <id>T1562.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150009
+    Purpose: Mendeteksi perubahan konfigurasi atau file signatures Windows Defender.
+    MITRE Technique: T1562.001
+    Expected Detection: Modifikasi/penambahan berkas di folder ProgramData Windows Defender
+  -->
+  <rule id="150009" level="13">
+    <if_sid>550,554</if_sid>
+    <field name="file" type="pcre2">(?i)ProgramData\\Microsoft\\Windows Defender\\</field>
+    <description>AEGILON - Windows Defender Config Modified</description>
+    <group>defense_evasion,defender,</group>
+    <mitre>
+      <id>T1562.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150010
+    Purpose: Mendeteksi penambahan file driver (.sys) baru di System32.
+    MITRE Technique: T1543.003
+    Expected Detection: File .sys ditambahkan ke folder System32/drivers
+  -->
+  <rule id="150010" level="15">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)System32\\drivers\\.*\.sys$</field>
+    <description>AEGILON - New Driver Installed</description>
+    <group>persistence,driver,</group>
+    <mitre>
+      <id>T1543.003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150011
+    Purpose: Mendeteksi berkas DLL baru ditambahkan ke sistem.
+    MITRE Technique: T1574.002
+    Expected Detection: File .dll ditambahkan
+  -->
+  <rule id="150011" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)\.dll$</field>
+    <description>AEGILON - DLL Added</description>
+    <group>execution,dll,</group>
+    <mitre>
+      <id>T1574.002</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150012
+    Purpose: Mendeteksi berkas executable (.exe) baru ditambahkan ke sistem.
+    MITRE Technique: T1204.002
+    Expected Detection: File .exe ditambahkan
+  -->
+  <rule id="150012" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)\.exe$</field>
+    <description>AEGILON - Executable Added</description>
+    <group>execution,executable,</group>
+    <mitre>
+      <id>T1204.002</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150013
+    Purpose: Mendeteksi berkas script PowerShell (.ps1) baru ditambahkan.
+    MITRE Technique: T1059.001
+    Expected Detection: File .ps1 ditambahkan
+  -->
+  <rule id="150013" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)\.ps1$</field>
+    <description>AEGILON - PowerShell Script Added</description>
+    <group>execution,script,powershell,</group>
+    <mitre>
+      <id>T1059.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150014
+    Purpose: Mendeteksi berkas script Batch (.bat, .cmd) baru ditambahkan.
+    MITRE Technique: T1059.003
+    Expected Detection: File .bat atau .cmd ditambahkan
+  -->
+  <rule id="150014" level="6">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)\.(bat|cmd)$</field>
+    <description>AEGILON - Batch Script Added</description>
+    <group>execution,script,batch,</group>
+    <mitre>
+      <id>T1059.003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150015
+    Purpose: Mendeteksi berkas script VBScript (.vbs) baru ditambahkan.
+    MITRE Technique: T1059.005
+    Expected Detection: File .vbs ditambahkan
+  -->
+  <rule id="150015" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)\.vbs$</field>
+    <description>AEGILON - VBS Script Added</description>
+    <group>execution,script,vbs,</group>
+    <mitre>
+      <id>T1059.005</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150016
+    Purpose: Mendeteksi berkas script JavaScript (.js) baru ditambahkan.
+    MITRE Technique: T1059.007
+    Expected Detection: File .js ditambahkan
+  -->
+  <rule id="150016" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)\.js$</field>
+    <description>AEGILON - JavaScript File Added</description>
+    <group>execution,script,javascript,</group>
+    <mitre>
+      <id>T1059.007</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150017
+    Purpose: Mendeteksi penulisan file executable baru pada folder Temp.
+    MITRE Technique: T1204.002
+    Expected Detection: Penulisan file .exe pada C:\Windows\Temp atau AppData\Local\Temp
+  -->
+  <rule id="150017" level="10">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)(Windows\\Temp|AppData\\Local\\Temp)\\.*\.exe$</field>
+    <description>AEGILON - Executable Added to Temp</description>
+    <group>execution,temp,executable,</group>
+    <mitre>
+      <id>T1204.002</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150018
+    Purpose: Mendeteksi berkas executable baru di folder Downloads (potensi unduhan malware).
+    MITRE Technique: T1204.002
+    Expected Detection: File .exe baru ditambahkan ke folder Downloads
+  -->
+  <rule id="150018" level="6">
+    <if_sid>554</if_sid>
+    <field name="file" type="pcre2">(?i)\\Downloads\\.*\.exe$</field>
+    <description>AEGILON - Executable Added to Downloads</description>
+    <group>execution,downloads,executable,</group>
+    <mitre>
+      <id>T1204.002</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150019
+    Purpose: Mendeteksi modifikasi pada berkas DLL sistem di System32.
+    MITRE Technique: T1574.002
+    Expected Detection: Modifikasi file .dll di System32
+  -->
+  <rule id="150019" level="13">
+    <if_sid>550</if_sid>
+    <field name="file" type="pcre2">(?i)System32\\.*\.dll$</field>
+    <description>AEGILON - Suspicious DLL Modification</description>
+    <group>defense_evasion,dll_sideloading,</group>
+    <mitre>
+      <id>T1574.002</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 150020
+    Purpose: Korelasi perubahan berulang pada beberapa file kritikal sistem dalam jangka waktu singkat.
+    MITRE Technique: T1565
+    Expected Detection: Terjadi 5 kali modifikasi berkas kritikal dalam waktu 120 detik
+  -->
+  <rule id="150020" level="15" frequency="5" timeframe="120">
+    <if_matched_group>aegilon_file</if_matched_group>
+    <description>AEGILON - Multiple Critical File Changes</description>
+    <group>correlation,</group>
+    <mitre>
+      <id>T1565</id>
+    </mitre>
+  </rule>
+
+</group>
