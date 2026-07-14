@@ -1,0 +1,324 @@
+<!--
+  - AEGILON Login Detection Pack
+  - Focus: Authentication-related detections based on Windows Security Event Log
+  - Version: 1.2
+  - Rules ID: 140001 - 140020
+-->
+
+<group name="windows,windows_security,aegilon_login,">
+
+  <!--
+    Rule ID: 140001
+    Purpose: Mendeteksi percobaan login gagal.
+    MITRE Technique: T1110
+    Expected Detection: Event ID 4625 (Failed Logon)
+  -->
+  <rule id="140001" level="6">
+    <if_sid>60122</if_sid>
+    <field name="win.system.eventID">^4625$</field>
+    <description>AEGILON - Failed Login</description>
+    <group>authentication_failed,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140002
+    Purpose: Mencatat aktivitas login normal yang berhasil.
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4624 (Successful Logon)
+  -->
+  <rule id="140002" level="3">
+    <if_sid>60106</if_sid>
+    <field name="win.system.eventID">^4624$</field>
+    <description>AEGILON - Successful Login</description>
+    <group>authentication_success,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140003
+    Purpose: Mendeteksi login menggunakan akun Administrator.
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4624 dengan Username Administrator atau Admin
+  -->
+  <rule id="140003" level="10">
+    <if_sid>60106</if_sid>
+    <field name="win.eventdata.targetUserName" type="pcre2">(?i)^(Administrator|Admin)$</field>
+    <description>AEGILON - Administrator Login</description>
+    <group>authentication_success,privileged,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140004
+    Purpose: Mendeteksi login melalui Remote Desktop (RDP).
+    MITRE Technique: T1021.001
+    Expected Detection: Event ID 4624 dengan Logon Type 10 (RemoteInteractive)
+  -->
+  <rule id="140004" level="10">
+    <if_sid>60106</if_sid>
+    <field name="win.eventdata.logonType">^10$</field>
+    <description>AEGILON - Remote Desktop Login</description>
+    <group>authentication_success,rdp,</group>
+    <mitre>
+      <id>T1021.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140005
+    Purpose: Mendeteksi login melalui jaringan (SMB/IIS/Share).
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4624 dengan Logon Type 3 (Network)
+  -->
+  <rule id="140005" level="6">
+    <if_sid>60106</if_sid>
+    <field name="win.eventdata.logonType">^3$</field>
+    <description>AEGILON - Network Login</description>
+    <group>authentication_success,network_login,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140006
+    Purpose: Mendeteksi beberapa percobaan login gagal dalam waktu singkat (Indikasi Brute Force awal).
+    MITRE Technique: T1110
+    Expected Detection: Terjadi 5 kali failed login dalam waktu 60 detik
+  -->
+  <rule id="140006" level="10" frequency="5" timeframe="60">
+    <if_matched_sid>140001</if_matched_sid>
+    <description>AEGILON - Multiple Failed Login</description>
+    <group>authentication_failed,brute_force,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140007
+    Purpose: Mendeteksi serangan brute force yang intensif.
+    MITRE Technique: T1110
+    Expected Detection: Terjadi 15 kali failed login dalam waktu 60 detik
+  -->
+  <rule id="140007" level="13" frequency="15" timeframe="60">
+    <if_matched_sid>140001</if_matched_sid>
+    <description>AEGILON - Brute Force Detected</description>
+    <group>authentication_failed,brute_force,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140008
+    Purpose: Mendeteksi akun pengguna yang dikunci akibat terlalu banyak kegagalan login.
+    MITRE Technique: T1110
+    Expected Detection: Event ID 4740 (A user account was locked out)
+  -->
+  <rule id="140008" level="13">
+    <if_sid>60100</if_sid>
+    <field name="win.system.eventID">^4740$</field>
+    <description>AEGILON - Account Lockout</description>
+    <group>lockout,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140009
+    Purpose: Mendeteksi percobaan login menggunakan akun yang telah dinonaktifkan.
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4625 dengan SubStatus 0xC0000072 (Account currently disabled)
+  -->
+  <rule id="140009" level="13">
+    <if_sid>60122</if_sid>
+    <field name="win.eventdata.subStatus" type="pcre2">(?i)0xc0000072</field>
+    <description>AEGILON - Disabled Account Login</description>
+    <group>authentication_failed,disabled_account,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140010
+    Purpose: Mendeteksi percobaan login menggunakan username yang tidak terdaftar di sistem.
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4625 dengan SubStatus 0xC0000064 (User logon with non-existent account)
+  -->
+  <rule id="140010" level="10">
+    <if_sid>60122</if_sid>
+    <field name="win.eventdata.subStatus" type="pcre2">(?i)0xc0000064</field>
+    <description>AEGILON - Unknown User Login</description>
+    <group>authentication_failed,unknown_user,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140011
+    Purpose: Mendeteksi login menggunakan akun Guest.
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4624 dengan targetUserName Guest
+  -->
+  <rule id="140011" level="10">
+    <if_sid>60106</if_sid>
+    <field name="win.eventdata.targetUserName" type="pcre2">(?i)^guest$</field>
+    <description>AEGILON - Guest Account Login</description>
+    <group>authentication_success,guest,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140012
+    Purpose: Mendeteksi login menggunakan akun administrator domain (Domain Admin).
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4624 dengan nama admin domain yang umum
+  -->
+  <rule id="140012" level="13">
+    <if_sid>60106</if_sid>
+    <field name="win.eventdata.targetUserName" type="pcre2">(?i)(domainadmin|administrator|admin_)</field>
+    <description>AEGILON - Domain Admin Login</description>
+    <group>authentication_success,domain_admin,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140013
+    Purpose: Mendeteksi login yang dilakukan oleh service account.
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4624 dengan Logon Type 5 (Service)
+  -->
+  <rule id="140013" level="6">
+    <if_sid>60106</if_sid>
+    <field name="win.eventdata.logonType">^5$</field>
+    <description>AEGILON - Service Account Login</description>
+    <group>authentication_success,service_account,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140014
+    Purpose: Mendeteksi login yang dilakukan di luar jam kerja standard (18:00 - 08:00).
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4624 yang terjadi di luar jam kerja
+  -->
+  <rule id="140014" level="10">
+    <if_sid>60106</if_sid>
+    <time>18:00 - 08:00</time>
+    <description>AEGILON - Logon Outside Working Hours</description>
+    <group>authentication_success,anomaly,working_hours,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140015
+    Purpose: Mendeteksi login dari alamat IP eksternal/publik (indikasi workstation baru atau koneksi tidak dikenal).
+    MITRE Technique: T1078
+    Expected Detection: Event ID 4624 dengan IP Address yang bukan private IP
+  -->
+  <rule id="140015" level="10">
+    <if_sid>60106</if_sid>
+    <field name="win.eventdata.ipAddress" type="pcre2">^(127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|::1|-$)$</field>
+    <description>AEGILON - Login From New Workstation</description>
+    <group>authentication_success,anomaly,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140016
+    Purpose: Mendeteksi login oleh pengguna yang sama berkali-kali dalam jangka waktu singkat.
+    MITRE Technique: T1078
+    Expected Detection: Terjadi 5 kali login sukses untuk pengguna yang sama dalam 300 detik
+  -->
+  <rule id="140016" level="13" frequency="5" timeframe="300">
+    <if_matched_sid>140002</if_matched_sid>
+    <description>AEGILON - Login From Multiple Hosts</description>
+    <group>authentication_success,anomaly,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140017
+    Purpose: Mendeteksi aktivitas RDP login yang berulang-ulang dalam jangka waktu singkat.
+    MITRE Technique: T1021.001
+    Expected Detection: Terjadi 5 kali RDP login dalam 60 detik
+  -->
+  <rule id="140017" level="13" frequency="5" timeframe="60">
+    <if_matched_sid>140004</if_matched_sid>
+    <description>AEGILON - Repeated RDP Login</description>
+    <group>authentication_success,rdp,</group>
+    <mitre>
+      <id>T1021.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140018
+    Purpose: Mendeteksi aktivitas login Administrator yang berulang-ulang dalam jangka waktu singkat.
+    MITRE Technique: T1078
+    Expected Detection: Terjadi 3 kali login Administrator dalam 60 detik
+  -->
+  <rule id="140018" level="10" frequency="3" timeframe="60">
+    <if_matched_sid>140003</if_matched_sid>
+    <description>AEGILON - Repeated Administrator Login</description>
+    <group>authentication_success,privileged,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140019
+    Purpose: Mendeteksi kegagalan autentikasi karena pelanggaran kebijakan (misal password expired/wajib ganti password).
+    MITRE Technique: T1110
+    Expected Detection: Event ID 4625 dengan SubStatus kegagalan kebijakan (0xC0000224, 0xC0000193)
+  -->
+  <rule id="140019" level="10">
+    <if_sid>60122</if_sid>
+    <field name="win.eventdata.subStatus" type="pcre2">(?i)(0xc0000224|0xc0000193|0xc0000223)</field>
+    <description>AEGILON - Authentication Policy Failure</description>
+    <group>authentication_failed,policy_failure,</group>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 140020
+    Purpose: Korelasi anomali autentikasi yang terjadi beruntun.
+    MITRE Technique: T1078
+    Expected Detection: Terjadi 3 kali alert anomali login (lockout, policy failure, luar jam kerja) dalam 120 detik
+  -->
+  <rule id="140020" level="15" frequency="3" timeframe="120">
+    <if_matched_group>aegilon_login</if_matched_group>
+    <description>AEGILON - Multiple Authentication Anomalies</description>
+    <group>windows_security,correlation,</group>
+    <mitre>
+      <id>T1078</id>
+    </mitre>
+  </rule>
+
+</group>

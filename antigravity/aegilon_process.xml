@@ -1,0 +1,483 @@
+<!--
+  - AEGILON Process Detection Pack
+  - Focus: Process-related detections based on Osquery running_processes telemetry
+  - Version: 1.1
+  - Rules ID: 110001 - 110025
+  - Verified fields used: osquery.name, osquery.action, osquery.columns.name, osquery.columns.path
+-->
+
+<group name="osquery,aegilon_process,">
+
+  <!--
+    Rule ID: 110001
+    Purpose: Mendeteksi eksekusi PowerShell dari path standar sistem.
+    MITRE Technique: T1059.001
+    Expected Detection: Eksekusi powershell.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110001" level="5">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^powershell\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\WindowsPowerShell\\v1\.0\\powershell\.exe$</field>
+    <description>AEGILON - PowerShell Execution</description>
+    <group>script_execution,execution,powershell,</group>
+    <mitre>
+      <id>T1059.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110002
+    Purpose: Mendeteksi eksekusi Command Prompt dari path standar sistem.
+    MITRE Technique: T1059.003
+    Expected Detection: Eksekusi cmd.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110002" level="4">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^cmd\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\cmd\.exe$</field>
+    <description>AEGILON - Command Prompt Execution</description>
+    <group>script_execution,execution,cmd,</group>
+    <mitre>
+      <id>T1059.003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110003
+    Purpose: Mendeteksi eksekusi CertUtil dari path standar sistem.
+    MITRE Technique: T1105
+    Expected Detection: Eksekusi certutil.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110003" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^certutil\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\certutil\.exe$</field>
+    <description>AEGILON - CertUtil Execution</description>
+    <group>lolbin,defense_evasion,certutil,</group>
+    <mitre>
+      <id>T1105</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110004
+    Purpose: Mendeteksi eksekusi BITSAdmin dari path standar sistem.
+    MITRE Technique: T1197
+    Expected Detection: Eksekusi bitsadmin.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110004" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^bitsadmin\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\bitsadmin\.exe$</field>
+    <description>AEGILON - BITSAdmin Execution</description>
+    <group>lolbin,defense_evasion,bitsadmin,</group>
+    <mitre>
+      <id>T1197</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110005
+    Purpose: Mendeteksi eksekusi HTA menggunakan mshta.exe dari path standar sistem.
+    MITRE Technique: T1218.005
+    Expected Detection: Eksekusi mshta.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110005" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^mshta\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\mshta\.exe$</field>
+    <description>AEGILON - Mshta Execution</description>
+    <group>lolbin,defense_evasion,mshta,</group>
+    <mitre>
+      <id>T1218.005</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110006
+    Purpose: Mendeteksi penggunaan WMIC untuk lateral movement/discovery dari path standar sistem.
+    MITRE Technique: T1047
+    Expected Detection: Eksekusi wmic.exe dari C:\Windows\System32\wbem\...
+  -->
+  <rule id="110006" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^wmic\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\wbem\\wmic\.exe$</field>
+    <description>AEGILON - WMIC Execution</description>
+    <group>lateral_movement,discovery,wmic,</group>
+    <mitre>
+      <id>T1047</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110007
+    Purpose: Mendeteksi pembuatan atau modifikasi Scheduled Task lewat schtasks.exe dari path standar sistem.
+    MITRE Technique: T1053.005
+    Expected Detection: Eksekusi schtasks.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110007" level="8">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^schtasks\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\schtasks\.exe$</field>
+    <description>AEGILON - Schtasks Execution</description>
+    <group>persistence,execution,schtasks,</group>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110008
+    Purpose: Mendeteksi modifikasi atau pembacaan registry menggunakan reg.exe dari path standar sistem.
+    MITRE Technique: T1112
+    Expected Detection: Eksekusi reg.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110008" level="6">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^reg\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\reg\.exe$</field>
+    <description>AEGILON - Registry Tool Execution</description>
+    <group>persistence,defense_evasion,reg,</group>
+    <mitre>
+      <id>T1112</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110009
+    Purpose: Mendeteksi eksekusi rundll32.exe dari path standar sistem.
+    MITRE Technique: T1218.011
+    Expected Detection: Eksekusi rundll32.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110009" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^rundll32\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\rundll32\.exe$</field>
+    <description>AEGILON - Rundll32 Execution</description>
+    <group>lolbin,defense_evasion,rundll32,</group>
+    <mitre>
+      <id>T1218.011</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110010
+    Purpose: Mendeteksi eksekusi regsvr32.exe dari path standar sistem.
+    MITRE Technique: T1218.010
+    Expected Detection: Eksekusi regsvr32.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110010" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^regsvr32\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\regsvr32\.exe$</field>
+    <description>AEGILON - Regsvr32 Execution</description>
+    <group>lolbin,defense_evasion,regsvr32,</group>
+    <mitre>
+      <id>T1218.010</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110011
+    Purpose: Mendeteksi eksekusi installutil.exe dari path standar sistem .NET Framework.
+    MITRE Technique: T1218.004
+    Expected Detection: Eksekusi installutil.exe dari C:\Windows\Microsoft.NET\...
+  -->
+  <rule id="110011" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^installutil\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\Microsoft\.NET\\Framework(64)?\\v[0-9\.]+\\installutil\.exe$</field>
+    <description>AEGILON - Installutil Execution</description>
+    <group>lolbin,defense_evasion,installutil,</group>
+    <mitre>
+      <id>T1218.004</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110012
+    Purpose: Mendeteksi penggunaan whoami dari path standar sistem.
+    MITRE Technique: T1033
+    Expected Detection: Eksekusi whoami.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110012" level="5">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^whoami\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\whoami\.exe$</field>
+    <description>AEGILON - Whoami Discovery</description>
+    <group>discovery,whoami,</group>
+    <mitre>
+      <id>T1033</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110013
+    Purpose: Mendeteksi penggunaan hostname dari path standar sistem.
+    MITRE Technique: T1082
+    Expected Detection: Eksekusi hostname.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110013" level="4">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^hostname\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\hostname\.exe$</field>
+    <description>AEGILON - Hostname Discovery</description>
+    <group>discovery,hostname,</group>
+    <mitre>
+      <id>T1082</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110014
+    Purpose: Mendeteksi penggunaan systeminfo dari path standar sistem.
+    MITRE Technique: T1082
+    Expected Detection: Eksekusi systeminfo.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110014" level="5">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^systeminfo\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\systeminfo\.exe$</field>
+    <description>AEGILON - Systeminfo Discovery</description>
+    <group>discovery,systeminfo,</group>
+    <mitre>
+      <id>T1082</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110015
+    Purpose: Mendeteksi penggunaan tasklist dari path standar sistem.
+    MITRE Technique: T1057
+    Expected Detection: Eksekusi tasklist.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110015" level="4">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^tasklist\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\tasklist\.exe$</field>
+    <description>AEGILON - Tasklist Discovery</description>
+    <group>discovery,tasklist,</group>
+    <mitre>
+      <id>T1057</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110016
+    Purpose: Mendeteksi penggunaan ipconfig dari path standar sistem.
+    MITRE Technique: T1049
+    Expected Detection: Eksekusi ipconfig.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110016" level="4">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^ipconfig\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\ipconfig\.exe$</field>
+    <description>AEGILON - Ipconfig Discovery</description>
+    <group>discovery,network_discovery,ipconfig,</group>
+    <mitre>
+      <id>T1049</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110017
+    Purpose: Mendeteksi penggunaan netstat dari path standar sistem.
+    MITRE Technique: T1049
+    Expected Detection: Eksekusi netstat.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110017" level="6">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^netstat\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\netstat\.exe$</field>
+    <description>AEGILON - Netstat Discovery</description>
+    <group>discovery,network_discovery,netstat,</group>
+    <mitre>
+      <id>T1049</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110018
+    Purpose: Mendeteksi penggunaan nslookup dari path standar sistem.
+    MITRE Technique: T1016
+    Expected Detection: Eksekusi nslookup.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110018" level="5">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^nslookup\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\nslookup\.exe$</field>
+    <description>AEGILON - Nslookup Discovery</description>
+    <group>discovery,network_discovery,nslookup,</group>
+    <mitre>
+      <id>T1016</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110019
+    Purpose: Mendeteksi penggunaan arp dari path standar sistem.
+    MITRE Technique: T1016
+    Expected Detection: Eksekusi arp.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110019" level="4">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^arp\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\arp\.exe$</field>
+    <description>AEGILON - ARP Discovery</description>
+    <group>discovery,network_discovery,arp,</group>
+    <mitre>
+      <id>T1016</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110020
+    Purpose: Mendeteksi penggunaan route dari path standar sistem.
+    MITRE Technique: T1016
+    Expected Detection: Eksekusi route.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110020" level="4">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^route\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\route\.exe$</field>
+    <description>AEGILON - Route Discovery</description>
+    <group>discovery,network_discovery,route,</group>
+    <mitre>
+      <id>T1016</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110021
+    Purpose: Mendeteksi eksekusi curl.exe dari path standar sistem.
+    MITRE Technique: T1105
+    Expected Detection: Eksekusi curl.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110021" level="5">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^curl\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\curl\.exe$</field>
+    <description>AEGILON - Curl Execution</description>
+    <group>file_transfer,defense_evasion,curl,</group>
+    <mitre>
+      <id>T1105</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110022
+    Purpose: Mendeteksi eksekusi ftp.exe dari path standar sistem.
+    MITRE Technique: T1105
+    Expected Detection: Eksekusi ftp.exe dari C:\Windows\System32\...
+  -->
+  <rule id="110022" level="5">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^ftp\.exe$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)^[a-zA-Z]:\\Windows\\(System32|SysWOW64)\\ftp\.exe$</field>
+    <description>AEGILON - FTP Execution</description>
+    <group>file_transfer,exfiltration,ftp,</group>
+    <mitre>
+      <id>T1105</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110023
+    Purpose: Mendeteksi eksekusi PsExec (Sysinternals tool) untuk lateral movement/remote execution.
+    MITRE Technique: T1021.002
+    Expected Detection: Eksekusi psexec.exe atau psexec64.exe
+  -->
+  <rule id="110023" level="15">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^psexec(64)?\.exe$</field>
+    <description>AEGILON - PsExec Execution</description>
+    <group>lateral_movement,psexec,</group>
+    <mitre>
+      <id>T1021.002</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110024
+    Purpose: Mendeteksi eksekusi Mimikatz untuk pencurian credential.
+    MITRE Technique: T1003
+    Expected Detection: Eksekusi mimikatz.exe
+  -->
+  <rule id="110024" level="15">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^mimikatz\.exe$</field>
+    <description>AEGILON - Mimikatz Execution</description>
+    <group>credential_access,mimikatz,</group>
+    <mitre>
+      <id>T1003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 110025
+    Purpose: Mendeteksi penggunaan ProcDump untuk dump memori proses lsass.exe.
+    MITRE Technique: T1003.001
+    Expected Detection: Eksekusi procdump.exe atau procdump64.exe
+  -->
+  <rule id="110025" level="15">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^running_processes$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.name" type="pcre2">(?i)^procdump(64)?\.exe$</field>
+    <description>AEGILON - ProcDump Execution</description>
+    <group>credential_access,procdump,</group>
+    <mitre>
+      <id>T1003.001</id>
+    </mitre>
+  </rule>
+
+</group>
