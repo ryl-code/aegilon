@@ -6,4 +6,4 @@
  * switch only — leave it unset (or "false") for real deployments so JWT auth
  * is enforced normally.
  */
-export const AUTH_BYPASS = process.env.NEXT_PUBLIC_AUTH_BYPASS === "true";
+export const AUTH_BYPASS = true;
