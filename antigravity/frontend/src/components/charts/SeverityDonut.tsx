@@ -19,6 +19,7 @@ export function SeverityDonut({ data }: { data: Record<string, number> }) {
   }
 
   const chartData = entries.map(([name, value]) => ({ name, value }));
+  const total = entries.reduce((acc, [, val]) => acc + val, 0);
 
   return (
     <div className="flex items-center gap-6">
@@ -28,21 +29,27 @@ export function SeverityDonut({ data }: { data: Record<string, number> }) {
             data={chartData}
             dataKey="value"
             nameKey="name"
-            innerRadius={45}
-            outerRadius={75}
-            paddingAngle={2}
+            innerRadius={48}
+            outerRadius={72}
+            paddingAngle={3}
           >
             {chartData.map((entry) => (
               <Cell key={entry.name} fill={COLORS[entry.name] ?? "#3F3F46"} />
             ))}
           </Pie>
+          <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle">
+            <tspan x="50%" dy="-6" fontSize="10" fill="var(--text-muted)" fontWeight="600" letterSpacing="0.05em">TOTAL</tspan>
+            <tspan x="50%" dy="20" fontSize="18" fill="var(--text)" fontWeight="700">{total}</tspan>
+          </text>
           <Tooltip
             contentStyle={{
-              background: "#18181B",
-              border: "1px solid #27272A",
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
               borderRadius: 8,
               fontSize: 12,
+              color: "var(--text)"
             }}
+            itemStyle={{ color: "var(--text)" }}
           />
         </PieChart>
       </ResponsiveContainer>

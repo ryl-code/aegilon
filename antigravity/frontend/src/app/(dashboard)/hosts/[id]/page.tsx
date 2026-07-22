@@ -78,7 +78,7 @@ export default function HostDetailPage() {
               <li
                 key={inc.id}
                 onClick={() => router.push(`/incidents/${inc.id}`)}
-                className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-white/5"
+                className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-background/80"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-text">{inc.title}</p>
@@ -106,7 +106,7 @@ export default function HostDetailPage() {
               <li
                 key={alert.id}
                 onClick={() => router.push(`/alerts/${alert.id}`)}
-                className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-white/5"
+                className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-background/80"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-text">{alert.title}</p>

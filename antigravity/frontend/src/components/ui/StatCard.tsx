@@ -21,7 +21,7 @@ export function StatCard({
   };
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5">
+    <div className="rounded-xl border border-border bg-surface p-5 shadow-card transition-all duration-200 hover:-translate-y-0.5">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs font-medium text-text-muted">{label}</p>
