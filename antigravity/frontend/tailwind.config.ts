@@ -6,21 +6,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#09090B",
-        surface: "#18181B",
-        border: "#27272A",
+        background: "var(--background)",
+        surface: "var(--surface)",
+        border: "var(--border)",
         primary: {
-          DEFAULT: "#2563EB",
-          hover: "#1D4ED8",
+          DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
         },
-        success: "#22C55E",
-        warning: "#F59E0B",
-        danger: "#EF4444",
-        critical: "#DC2626",
+        success: "var(--success)",
+        warning: "var(--warning)",
+        danger: "var(--danger)",
+        critical: "var(--critical)",
         text: {
-          DEFAULT: "#FAFAFA",
-          muted: "#A1A1AA",
+          DEFAULT: "var(--text)",
+          muted: "var(--text-muted)",
         },
+      },
+      boxShadow: {
+        card: "var(--card-shadow)",
       },
       borderRadius: {
         xl: "0.75rem",

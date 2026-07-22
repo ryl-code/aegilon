@@ -44,7 +44,7 @@ export function DataTable<T>({
               onClick={() => onRowClick?.(row)}
               className={
                 onRowClick
-                  ? "cursor-pointer border-b border-border/60 hover:bg-white/5"
+                  ? "cursor-pointer border-b border-border/60 hover:bg-background/80"
                   : "border-b border-border/60"
               }
             >

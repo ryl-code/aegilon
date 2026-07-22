@@ -3,6 +3,7 @@ import { api } from "@/lib/axios";
 export interface HealthStatus {
   status: string;
   database: string;
+  wazuh: string;
 }
 
 export async function getHealth(): Promise<HealthStatus> {

@@ -6,7 +6,7 @@ const TONE_CLASSES: Record<SeverityTone, string> = {
   danger: "bg-danger/15 text-danger border-danger/30",
   warning: "bg-warning/15 text-warning border-warning/30",
   success: "bg-success/15 text-success border-success/30",
-  muted: "bg-white/5 text-text-muted border-white/10",
+  muted: "bg-background text-text-muted border-border",
 };
 
 export function Badge({

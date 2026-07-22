@@ -4,10 +4,10 @@ import { Loader2 } from "lucide-react";
 type Variant = "primary" | "secondary" | "danger" | "ghost";
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "bg-primary text-white hover:bg-primary-hover",
-  secondary: "bg-white/5 text-text hover:bg-white/10 border border-border",
+  primary: "bg-primary text-background dark:text-[#060b13] font-semibold hover:opacity-90",
+  secondary: "bg-surface text-text hover:bg-background border border-border",
   danger: "bg-danger text-white hover:bg-danger/90",
-  ghost: "text-text-muted hover:text-text hover:bg-white/5",
+  ghost: "text-text-muted hover:text-text hover:bg-surface",
 };
 
 export function Button({

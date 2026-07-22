@@ -75,7 +75,17 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <dt className="text-sm text-text-muted">Wazuh Status</dt>
               <dd>
-                <Badge tone="muted">Not exposed by backend yet</Badge>
+                <Badge
+                  tone={
+                    health?.wazuh === "connected"
+                      ? "success"
+                      : health?.wazuh === "simulated"
+                      ? "warning"
+                      : "danger"
+                  }
+                >
+                  {health?.wazuh ? health.wazuh.charAt(0).toUpperCase() + health.wazuh.slice(1) : "Unknown"}
+                </Badge>
               </dd>
             </div>
             <div className="flex items-center justify-between">

@@ -30,7 +30,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full w-60 flex-col bg-[#0c0c0e]">
+    <div className="flex h-full w-60 flex-col bg-surface border-r border-border">
       <div className="flex items-center gap-2 px-5 py-5">
         <ShieldHalf className="text-primary" size={24} />
         <span className="text-base font-semibold text-text">AEGILON</span>
@@ -47,8 +47,8 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 active
-                  ? "bg-primary/15 text-primary"
-                  : "text-text-muted hover:bg-white/5 hover:text-text"
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-text-muted hover:bg-background/80 hover:text-text"
               )}
             >
               <Icon size={17} />

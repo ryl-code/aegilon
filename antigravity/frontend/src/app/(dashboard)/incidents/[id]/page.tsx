@@ -148,7 +148,7 @@ export default function IncidentDetailPage() {
                 <li
                   key={link.id}
                   onClick={() => link.alert_id && router.push(`/alerts/${link.alert_id}`)}
-                  className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-white/5"
+                  className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-background/80"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-text">
@@ -205,7 +205,7 @@ export default function IncidentDetailPage() {
                 <li
                   key={res.id}
                   onClick={() => router.push(`/responses/${res.id}`)}
-                  className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-white/5"
+                  className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-background/80"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-text">{res.action}</p>
