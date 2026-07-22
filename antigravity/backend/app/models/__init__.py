@@ -7,6 +7,7 @@ from app.models.incident_alert import IncidentAlert
 from app.models.incident_history import IncidentHistory
 from app.models.response import Response
 from app.models.audit_log import AuditLog
+from app.models.security_event import SecurityEvent
 
 __all__ = [
     "User",
@@ -18,4 +19,6 @@ __all__ = [
     "IncidentHistory",
     "Response",
     "AuditLog",
+    "SecurityEvent",
 ]
+
