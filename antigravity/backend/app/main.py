@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from contextlib import asynccontextmanager
-from app.api import health, auth, hosts, alerts, analysis, incidents, responses, wazuh, audit_logs, notifications
+from app.api import health, auth, hosts, alerts, analysis, incidents, responses, wazuh, audit_logs, notifications, rules
 from app.database.database import engine, Base, AsyncSessionLocal
 from app.core.config import settings
 from app.models.user import User
@@ -78,6 +78,8 @@ app.include_router(wazuh.router, prefix="/api")
 app.include_router(audit_logs.router)
 app.include_router(notifications.router)
 app.include_router(notifications.router, prefix="/api")
+app.include_router(rules.router)
+app.include_router(rules.router, prefix="/api")
 
 @app.get("/")
 def read_root():
