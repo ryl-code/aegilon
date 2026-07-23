@@ -10,6 +10,7 @@ import { Loading } from "@/components/ui/Loading";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatDateTime } from "@/utils/format";
+import { ExportButtons } from "@/components/ui/ExportButtons";
 import type { AuditLog } from "@/types";
 
 const LIMIT = 25;
@@ -54,7 +55,10 @@ export default function AuditLogsPage() {
           <h1 className="text-xl font-semibold text-text">Audit Logs</h1>
           <p className="text-sm text-text-muted">Analyst activity across the platform</p>
         </div>
-        <SearchBox value={search} onChange={setSearch} placeholder="Search user, action, resource..." />
+        <div className="flex items-center gap-2">
+          <ExportButtons data={filtered} filenamePrefix="aegilon_audit_logs" />
+          <SearchBox value={search} onChange={setSearch} placeholder="Search user, action, resource..." />
+        </div>
       </div>
 
       <div className="rounded-xl border border-border bg-surface p-4">

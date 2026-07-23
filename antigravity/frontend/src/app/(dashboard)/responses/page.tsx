@@ -1,13 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { getResponses } from "@/services/responses";
+import { toast } from "sonner";
+import { getResponses, createResponse } from "@/services/responses";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { SearchBox } from "@/components/ui/SearchBox";
 import { Select } from "@/components/ui/Select";
-import { StatusBadge } from "@/components/ui/Badge";
+import { ResponseStatusBadge } from "@/components/ui/ResponseStatusBadge";
+import { ResponseActionModal } from "@/components/ui/ResponseActionModal";
 import { Pagination } from "@/components/ui/Pagination";
 import { Loading } from "@/components/ui/Loading";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -19,14 +21,31 @@ const LIMIT = 25;
 
 export default function ResponsesPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [skip, setSkip] = useState(0);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [selectedActionToTrigger, setSelectedActionToTrigger] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["responses", skip],
     queryFn: () => getResponses(skip, LIMIT),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (payload: { action: string; message: string }) =>
+      createResponse({
+        incident_id: "00000000-0000-0000-0000-000000000000",
+        action: payload.action,
+        status: "pending",
+        message: payload.message,
+      }),
+    onSuccess: () => {
+      toast.success("Response action queued successfully");
+      queryClient.invalidateQueries({ queryKey: ["responses"] });
+    },
+    onError: () => toast.error("Failed to queue response action"),
   });
 
   const filtered = useMemo(() => {
@@ -46,10 +65,9 @@ export default function ResponsesPage() {
   );
 
   const columns: Column<ResponseAction>[] = [
-    { header: "Incident", render: (r) => <span className="font-mono text-xs">{r.incident_id.slice(0, 8)}</span> },
-    { header: "Action", render: (r) => r.action },
-    { header: "Status", render: (r) => <StatusBadge status={r.status} /> },
-    { header: "Output", render: (r) => <span className="text-text-muted">{r.message ?? "-"}</span> },
+    { header: "Action", render: (r) => <span className="font-medium text-text">{r.action}</span> },
+    { header: "Status", render: (r) => <ResponseStatusBadge status={r.status} /> },
+    { header: "Audit / Output Message", render: (r) => <span className="text-text-muted">{r.message ?? "-"}</span> },
     { header: "Executed At", render: (r) => formatDateTime(r.executed_at) },
   ];
 
@@ -61,11 +79,17 @@ export default function ResponsesPage() {
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-xl font-semibold text-text">Responses</h1>
-          <p className="text-sm text-text-muted">Automated and manual remediation actions</p>
+          <p className="text-sm text-text-muted">Automated and manual remediation action lifecycle</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <SearchBox value={search} onChange={setSearch} placeholder="Search action..." />
           <Select value={status} onChange={setStatus} options={statusOptions} placeholder="All statuses" />
+          <button
+            onClick={() => setSelectedActionToTrigger("Isolate Host")}
+            className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors shadow"
+          >
+            + Isolate Host Action
+          </button>
         </div>
       </div>
 
@@ -87,6 +111,20 @@ export default function ResponsesPage() {
           />
         </div>
       </div>
+
+      {selectedActionToTrigger && (
+        <ResponseActionModal
+          actionName={selectedActionToTrigger}
+          targetHost="WIN-HOST-01"
+          onClose={() => setSelectedActionToTrigger(null)}
+          onConfirm={async (notes) => {
+            await createMutation.mutateAsync({
+              action: selectedActionToTrigger,
+              message: notes,
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -17,12 +17,28 @@ class AlertRepository(BaseRepository[Alert]):
         result = await db.execute(query)
         return result.scalar_one_or_none()
 
-    async def get_multi(self, db: AsyncSession, *, skip: int = 0, limit: int = 100) -> List[Alert]:
+    async def get_multi(
+        self,
+        db: AsyncSession,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        severity: Optional[str] = None,
+        minutes: Optional[int] = None
+    ) -> List[Alert]:
         from sqlalchemy.orm import selectinload
+        from datetime import datetime, timedelta, timezone
         query = select(self.model).options(
             selectinload(self.model.host),
             selectinload(self.model.rule)
-        ).offset(skip).limit(limit)
+        )
+        if severity and severity.lower() != "all":
+            query = query.where(self.model.severity.ilike(severity))
+        if minutes and minutes > 0:
+            cutoff = datetime.now(timezone.utc) - timedelta(minutes=minutes)
+            query = query.where(self.model.created_at >= cutoff)
+            
+        query = query.order_by(self.model.created_at.desc()).offset(skip).limit(limit)
         result = await db.execute(query)
         return list(result.scalars().all())
 

@@ -52,13 +52,14 @@ class WazuhService:
         except Exception:
             timestamp = datetime.now(wib)
             
-        # Map wazuh level to standard severity: Low, Medium, High, Critical
+        # Map wazuh level to official Wazuh dashboard severity standard:
+        # Low: Level 0-6 | Medium: Level 7-11 | High: Level 12-14 | Critical: Level 15+
         severity = "Low"
-        if level >= 12:
+        if level >= 15:
             severity = "Critical"
-        elif level >= 9:
+        elif level >= 12:
             severity = "High"
-        elif level >= 5:
+        elif level >= 7:
             severity = "Medium"
             
         # A. Fetch or create host

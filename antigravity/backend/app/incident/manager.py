@@ -103,6 +103,22 @@ class IncidentManager:
                 new_value=str(alert.id),
                 performed_by="system"
             )
+
+            # Trigger Telegram Alert Notification for High/Critical Incidents
+            if severity.lower() in ["critical", "high"]:
+                from app.services.telegram import telegram_service
+                host_name = getattr(alert.host, "hostname", str(alert.host_id)) if alert.host else str(alert.host_id)
+                import asyncio
+                asyncio.create_task(
+                    telegram_service.send_incident_alert(
+                        incident_number=new_inc.incident_number,
+                        title=title,
+                        severity=severity,
+                        host_name=host_name,
+                        risk_score=new_inc.risk_score or 75.0,
+                        category=category
+                    )
+                )
             
             return new_inc
 

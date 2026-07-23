@@ -12,6 +12,7 @@ import {
   ScrollText,
   Settings,
   ShieldHalf,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { href: "/responses", label: "Responses", icon: Zap },
   { href: "/rules", label: "Rules", icon: BookMarked },
   { href: "/audit-logs", label: "Audit Logs", icon: ScrollText },
+  { href: "/iso-standards", label: "ISO Standards", icon: BookOpen },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

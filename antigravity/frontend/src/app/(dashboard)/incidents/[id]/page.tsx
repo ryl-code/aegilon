@@ -21,6 +21,13 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { formatDateTime } from "@/utils/format";
 import { cn } from "@/utils/cn";
+import { RiskBreakdownCard } from "@/components/ui/RiskBreakdownCard";
+import { SeverityLegend } from "@/components/ui/SeverityLegend";
+import { AttackTimeline, type TimelineEvent } from "@/components/ui/AttackTimeline";
+import { ResponseStatusBadge } from "@/components/ui/ResponseStatusBadge";
+import { OccurrenceBadge } from "@/components/ui/OccurrenceBadge";
+import { ResponseActionModal } from "@/components/ui/ResponseActionModal";
+import { createResponse } from "@/services/responses";
 
 const TABS = ["Overview", "Evidence", "History", "Responses", "Analysis"] as const;
 const STATUS_OPTIONS = ["Open", "Investigating", "Contained", "Resolved", "Closed", "False Positive", "Ignored"];
@@ -30,6 +37,7 @@ export default function IncidentDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
+  const [actionModal, setActionModal] = useState<string | null>(null);
 
   const incidentQuery = useQuery({
     queryKey: ["incident", params.id],
@@ -84,6 +92,7 @@ export default function IncidentDetailPage() {
           <p className="font-mono text-xs text-text-muted">{incident.incident_number}</p>
         </div>
         <div className="flex items-center gap-2">
+          <SeverityLegend />
           <SeverityBadge severity={incident.severity} />
           <StatusBadge status={incident.status} />
           <Select
@@ -113,26 +122,35 @@ export default function IncidentDetailPage() {
       </div>
 
       {tab === "Overview" && (
-        <Card>
-          <CardHeader title="Overview" />
-          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Info label="Incident Number" value={incident.incident_number} />
-            <Info label="Severity" value={<SeverityBadge severity={incident.severity} />} />
-            <Info label="Priority" value={incident.priority} />
-            <Info label="Risk Score" value={incident.risk_score ?? "Not analyzed yet"} />
-            <Info label="Confidence" value={`${incident.confidence}%`} />
-            <Info label="Occurrence" value={incident.occurrence} />
-            <Info label="Category" value={incident.category} />
-            <Info label="Host" value={incident.host?.hostname ?? "-"} />
-            <Info label="Rule" value={incident.rule?.name ?? "-"} />
-            <Info label="Assigned To" value={incident.assigned_to ?? "Unassigned"} />
-            <Info label="First Seen" value={formatDateTime(incident.first_seen)} />
-            <Info label="Last Seen" value={formatDateTime(incident.last_seen)} />
-          </dl>
-          {incident.description && (
-            <p className="mt-4 text-sm text-text-muted">{incident.description}</p>
-          )}
-        </Card>
+        <div className="space-y-4">
+          <Card>
+            <CardHeader title="Overview" />
+            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <Info label="Incident Number" value={incident.incident_number} />
+              <Info label="Severity" value={<SeverityBadge severity={incident.severity} />} />
+              <Info label="Priority" value={incident.priority} />
+              <Info label="Risk Score" value={incident.risk_score != null ? incident.risk_score.toFixed(1) : "Not analyzed yet"} />
+              <Info label="Confidence" value={`${incident.confidence}%`} />
+              <Info label="Occurrence" value={`${incident.occurrence}x`} />
+              <Info label="Category" value={incident.category} />
+              <Info label="Host" value={incident.host?.hostname ?? "-"} />
+              <Info label="Rule" value={incident.rule?.name ?? "-"} />
+              <Info label="Assigned To" value={incident.assigned_to ?? "Unassigned"} />
+              <Info label="First Seen" value={formatDateTime(incident.first_seen)} />
+              <Info label="Last Seen" value={formatDateTime(incident.last_seen)} />
+            </dl>
+            {incident.description && (
+              <p className="mt-4 text-sm text-text-muted">{incident.description}</p>
+            )}
+          </Card>
+
+          <RiskBreakdownCard
+            riskScore={incident.risk_score ?? 75}
+            occurrenceCount={incident.occurrence}
+            ruleSeverityLevel={10}
+            assetCriticality={1.0}
+          />
+        </div>
       )}
 
       {tab === "Evidence" && (
@@ -165,58 +183,72 @@ export default function IncidentDetailPage() {
       )}
 
       {tab === "History" && (
-        <Card>
-          <CardHeader title="Timeline" />
-          {historyQuery.isLoading ? (
-            <Loading label="Loading history..." />
-          ) : (historyQuery.data ?? []).length === 0 ? (
-            <EmptyState title="No history recorded yet" />
-          ) : (
-            <ol className="space-y-4 border-l border-border pl-4">
-              {historyQuery.data!.map((h) => (
-                <li key={h.id} className="relative">
-                  <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full bg-primary" />
-                  <p className="text-sm font-medium text-text">{h.action}</p>
-                  {(h.old_value || h.new_value) && (
-                    <p className="text-xs text-text-muted">
-                      {h.old_value ?? "-"} &rarr; {h.new_value ?? "-"}
-                    </p>
-                  )}
-                  <p className="text-xs text-text-muted">
-                    {formatDateTime(h.created_at)} &middot; {h.performed_by}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          )}
-        </Card>
+        <div className="space-y-4">
+          <AttackTimeline
+            events={(historyQuery.data ?? []).map((h) => ({
+              id: h.id,
+              title: h.action,
+              timestamp: h.created_at,
+              severity: incident.severity,
+              description: h.old_value || h.new_value ? `${h.old_value ?? "-"} ➔ ${h.new_value ?? "-"}` : undefined,
+              performedBy: h.performed_by,
+            }))}
+            firstSeen={incident.first_seen}
+            lastSeen={incident.last_seen}
+          />
+        </div>
       )}
 
       {tab === "Responses" && (
-        <Card>
-          <CardHeader title="Response Actions" />
-          {responsesQuery.isLoading ? (
-            <Loading label="Loading responses..." />
-          ) : incidentResponses.length === 0 ? (
-            <EmptyState title="No response actions executed for this incident" />
-          ) : (
-            <ul className="divide-y divide-border">
-              {incidentResponses.map((res) => (
-                <li
-                  key={res.id}
-                  onClick={() => router.push(`/responses/${res.id}`)}
-                  className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-background/80"
+        <div className="space-y-4">
+          <Card>
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <div>
+                <h3 className="text-base font-semibold text-text">Response Actions Lifecycle</h3>
+                <p className="text-xs text-text-muted">Automated and manual remediation actions taken for this incident</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  className="px-3 py-1.5 text-xs"
+                  onClick={() => setActionModal("Kill Process")}
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-text">{res.action}</p>
-                    <p className="text-xs text-text-muted">{formatDateTime(res.executed_at)}</p>
-                  </div>
-                  <StatusBadge status={res.status} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
+                  Kill Process
+                </Button>
+                <Button
+                  variant="danger"
+                  className="px-3 py-1.5 text-xs"
+                  onClick={() => setActionModal("Isolate Host")}
+                >
+                  Isolate Host
+                </Button>
+              </div>
+            </div>
+
+            {responsesQuery.isLoading ? (
+              <Loading label="Loading responses..." />
+            ) : incidentResponses.length === 0 ? (
+              <EmptyState title="No response actions executed for this incident yet" />
+            ) : (
+              <ul className="divide-y divide-border p-4">
+                {incidentResponses.map((res) => (
+                  <li
+                    key={res.id}
+                    onClick={() => router.push(`/responses/${res.id}`)}
+                    className="flex cursor-pointer items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-background/80 rounded px-2"
+                  >
+                    <div className="min-w-0 space-y-0.5">
+                      <p className="truncate text-sm font-medium text-text">{res.action}</p>
+                      <p className="text-xs text-text-muted">{res.message ?? "No notes specified."}</p>
+                      <p className="text-[11px] text-text-muted">{formatDateTime(res.executed_at)}</p>
+                    </div>
+                    <ResponseStatusBadge status={res.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
       )}
 
       {tab === "Analysis" && (
@@ -251,6 +283,25 @@ export default function IncidentDetailPage() {
             )}
           </div>
         </Card>
+      )}
+
+      {actionModal && (
+        <ResponseActionModal
+          actionName={actionModal}
+          targetHost={incident.host?.hostname ?? "Target Host"}
+          incidentId={incident.id}
+          onClose={() => setActionModal(null)}
+          onConfirm={async (notes) => {
+            await createResponse({
+              incident_id: incident.id,
+              action: actionModal,
+              status: "pending",
+              message: notes,
+            });
+            toast.success(`Triggered ${actionModal} action successfully`);
+            queryClient.invalidateQueries({ queryKey: ["responses"] });
+          }}
+        />
       )}
     </div>
   );
