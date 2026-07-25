@@ -10,8 +10,10 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
         defaultOptions: {
           queries: {
             retry: 1,
-            refetchOnWindowFocus: false,
-            staleTime: 15_000,
+            refetchOnWindowFocus: true,
+            refetchInterval: 3000, // Poll every 3 seconds for live streaming events
+            staleTime: 1000,
+            placeholderData: (previousData: any) => previousData, // Seamlessly keep previous data during background updates
           },
         },
       })

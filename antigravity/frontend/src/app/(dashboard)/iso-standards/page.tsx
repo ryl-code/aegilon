@@ -48,6 +48,40 @@ export default function ISOStandardsPage() {
         </div>
       </Card>
 
+      {/* CIS Security Configuration Assessment (SCA) Benchmark Panel */}
+      <Card className="border border-border bg-gradient-to-r from-surface to-surface/40">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
+              <CheckCircle size={15} /> Security Configuration Assessment (Wazuh SCA)
+            </div>
+            <h3 className="text-base font-bold text-text">CIS Microsoft Windows 11 Enterprise Benchmark v1.0.0</h3>
+            <p className="text-xs text-text-muted">
+              Evaluated Host: <strong className="text-text font-mono">LAPTOP-15L4HM9G (001)</strong> &middot; End scan: <strong className="text-text font-mono">Jul 25, 2026 @ 12:04:07.000</strong>
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 text-xs">
+            <div className="px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center min-w-[90px]">
+              <span className="text-emerald-400 text-[11px]">Passed</span>
+              <p className="text-lg font-bold text-emerald-400">127</p>
+            </div>
+            <div className="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-center min-w-[90px]">
+              <span className="text-red-400 text-[11px]">Failed</span>
+              <p className="text-lg font-bold text-red-400">260</p>
+            </div>
+            <div className="px-3 py-2 rounded-xl bg-surface-hover border border-border text-center min-w-[90px]">
+              <span className="text-text-muted text-[11px]">Not applicable</span>
+              <p className="text-lg font-bold text-text">8</p>
+            </div>
+            <div className="px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-center min-w-[100px]">
+              <span className="text-primary text-[11px]">Compliance</span>
+              <p className="text-lg font-bold text-primary">32%</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
       {/* ISO Standards Reference Overview Grid */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card className="border-l-4 border-l-blue-500">

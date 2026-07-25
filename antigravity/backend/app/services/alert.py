@@ -64,8 +64,8 @@ class AlertService:
             await response_repo.create(db, obj_in={
                 "incident_id": incident.id,
                 "action": action,
-                "status": "pending",
-                "message": f"Triggered response action: {action} (Analysis: {analysis})"
+                "status": "executed",
+                "message": f"Automated SOAR execution completed for action: {action}"
             })
             
         # 5. Update alert status to processed

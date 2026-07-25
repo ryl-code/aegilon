@@ -24,3 +24,8 @@ export async function getAlert(id: string): Promise<Alert> {
   const { data } = await api.get<Alert>(`/alerts/${id}`);
   return data;
 }
+
+export async function runDetectionEngine(): Promise<{ status: string; message: string }> {
+  const { data } = await api.post<{ status: string; message: string }>("/detection/run");
+  return data;
+}

@@ -20,3 +20,16 @@ export async function createResponse(payload: {
   const { data } = await api.post<ResponseAction>("/responses", payload);
   return data;
 }
+
+export async function updateResponseStatus(
+  id: string,
+  status: string,
+  message?: string
+): Promise<ResponseAction> {
+  const { data } = await api.put<ResponseAction>(`/responses/${id}`, {
+    action: "update",
+    status,
+    message,
+  });
+  return data;
+}

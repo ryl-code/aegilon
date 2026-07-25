@@ -75,7 +75,7 @@ export default function IncidentsPage() {
     { header: "Created At", render: (i) => formatDateTime(i.created_at) },
   ];
 
-  if (isLoading) return <Loading label="Loading incidents..." />;
+  if (isLoading && !data) return <Loading label="Loading incidents..." />;
   if (isError) return <ErrorState description="Failed to load incidents from backend." />;
 
   return (

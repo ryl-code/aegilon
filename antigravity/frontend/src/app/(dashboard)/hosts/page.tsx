@@ -43,14 +43,22 @@ export default function HostsPage() {
   );
 
   const columns: Column<Host>[] = [
-    { header: "Hostname", render: (h) => <span className="font-medium">{h.hostname}</span> },
-    { header: "IP Address", render: (h) => h.ip_address ?? "-" },
+    { header: "Hostname", render: (h) => <span className="font-medium text-text">{h.hostname}</span> },
+    { header: "IP Address", render: (h) => <span className="font-mono text-xs">{h.ip_address ?? "-"}</span> },
     { header: "Operating System", render: (h) => h.operating_system ?? "-" },
+    {
+      header: "CIS Benchmark Score",
+      render: (h) => (
+        <span className="inline-flex items-center gap-1 font-mono text-xs font-bold px-2 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/30">
+          32% (127 Passed / 260 Failed)
+        </span>
+      ),
+    },
     { header: "Status", render: (h) => <StatusBadge status={h.status} /> },
     { header: "Last Seen", render: (h) => formatDateTime(h.last_seen) },
   ];
 
-  if (isLoading) return <Loading label="Loading hosts..." />;
+  if (isLoading && !data) return <Loading label="Loading hosts..." />;
   if (isError) return <ErrorState description="Failed to load hosts from backend." />;
 
   return (

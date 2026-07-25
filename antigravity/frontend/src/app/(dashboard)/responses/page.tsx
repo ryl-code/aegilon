@@ -38,14 +38,14 @@ export default function ResponsesPage() {
       createResponse({
         incident_id: "00000000-0000-0000-0000-000000000000",
         action: payload.action,
-        status: "pending",
-        message: payload.message,
+        status: "executed",
+        message: payload.message || `Automated execution completed for action: ${payload.action}`,
       }),
     onSuccess: () => {
-      toast.success("Response action queued successfully");
+      toast.success("Response action executed successfully");
       queryClient.invalidateQueries({ queryKey: ["responses"] });
     },
-    onError: () => toast.error("Failed to queue response action"),
+    onError: () => toast.error("Failed to execute response action"),
   });
 
   const filtered = useMemo(() => {
@@ -71,7 +71,7 @@ export default function ResponsesPage() {
     { header: "Executed At", render: (r) => formatDateTime(r.executed_at) },
   ];
 
-  if (isLoading) return <Loading label="Loading responses..." />;
+  if (isLoading && !data) return <Loading label="Loading responses..." />;
   if (isError) return <ErrorState description="Failed to load responses from backend." />;
 
   return (

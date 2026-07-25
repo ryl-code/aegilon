@@ -113,6 +113,30 @@ class WazuhService:
             "alert_id": alert.id
         }
 
+    async def process_batch_wazuh_alerts(self, db: AsyncSession, alerts_batch: list) -> dict:
+        """
+        High-volume batch log ingestion queue buffer for processing large scale streams (200k+ alerts).
+        """
+        processed_count = 0
+        skipped_count = 0
+
+        for alert_item in alerts_batch:
+            try:
+                res = await self.process_wazuh_alert(db, alert_item)
+                if res.get("status") == "success":
+                    processed_count += 1
+                else:
+                    skipped_count += 1
+            except Exception as e:
+                logger.warning(f"Batch item error: {str(e)}")
+                skipped_count += 1
+
+        return {
+            "total": len(alerts_batch),
+            "processed": processed_count,
+            "skipped": skipped_count
+        }
+
 class WazuhAPIClient:
     def __init__(self):
         self.base_url = settings.WAZUH_API_URL

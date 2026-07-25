@@ -63,7 +63,7 @@ export default function AlertsPage() {
     },
   ];
 
-  if (isLoading) return <Loading label="Loading alerts..." />;
+  if (isLoading && !data) return <Loading label="Loading alerts..." />;
   if (isError) return <ErrorState description="Failed to load alerts from backend." />;
 
   return (

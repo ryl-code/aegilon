@@ -25,9 +25,9 @@ class DetectionEngine:
             # 2. Match rule
             matched_rule = matcher.match_rule(parsed, rules)
             if not matched_rule:
-                logger.info(f"[INFO] No Rule Match for alert {alert.id} (process: {proc_name}) -> Ignored")
-                await incident_generator.mark_ignored(db, alert)
-                return False
+                logger.info(f"[INFO] Analyzed alert {alert.id} (process: {proc_name}) -> Marked as processed (no threat rule triggered)")
+                await alert_repo.update(db, db_obj=alert, obj_in={"status": "processed"})
+                return True
                 
             rule_name = matched_rule["name"]
             

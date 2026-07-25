@@ -3,9 +3,6 @@ import "./globals.css";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { Toaster } from "sonner";
-import { Plus_Jakarta_Sans } from "next/font/google";
-
-const sans = Plus_Jakarta_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "AEGILON XDR",
@@ -20,6 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -31,7 +31,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={sans.className}>
+      <body className="font-sans">
         <QueryProvider>
           <AuthProvider>
             {children}

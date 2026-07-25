@@ -13,6 +13,7 @@ import {
   Settings,
   ShieldHalf,
   BookOpen,
+  Cpu,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/alerts", label: "Alerts", icon: ShieldAlert },
   { href: "/incidents", label: "Incidents", icon: Flame },
   { href: "/responses", label: "Responses", icon: Zap },
+  { href: "/playbooks", label: "SOAR Playbooks", icon: Cpu },
   { href: "/rules", label: "Rules", icon: BookMarked },
   { href: "/audit-logs", label: "Audit Logs", icon: ScrollText },
   { href: "/iso-standards", label: "ISO Standards", icon: BookOpen },

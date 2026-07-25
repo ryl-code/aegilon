@@ -124,6 +124,27 @@ export interface AuditLog {
   user?: User | null;
 }
 
+export interface SCACheck {
+  id: number;
+  title: string;
+  target: string;
+  result: "passed" | "failed" | "not_applicable";
+  rationale: string;
+  remediation: string;
+  description: string;
+}
+
+export interface SCAPolicy {
+  name: string;
+  passed: number;
+  failed: number;
+  not_applicable: number;
+  score: number;
+  end_scan: string;
+  total_checks: number;
+  checks: SCACheck[];
+}
+
 export interface Paginated<T> {
   items: T[];
   skip: number;
