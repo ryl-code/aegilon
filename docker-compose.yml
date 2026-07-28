@@ -1,13 +1,13 @@
 services:
   backend:
-    build: ./antigravity/backend
+    build: ./Aegilon/backend
     container_name: aegilon-backend
     ports:
       - "8080:8080"
     volumes:
-      - ./antigravity/backend:/app
+      - ./Aegilon/backend:/app
     env_file:
-      - ./antigravity/backend/.env
+      - ./Aegilon/backend/.env
     networks:
       - wazuh_net
     healthcheck:
@@ -18,12 +18,12 @@ services:
       start_period: 5s
 
   detection-engine:
-    build: ./antigravity/detection-engine
+    build: ./Aegilon/detection-engine
     container_name: aegilon-detection-engine
     volumes:
-      - ./antigravity/detection-engine:/app
+      - ./Aegilon/detection-engine:/app
     env_file:
-      - ./antigravity/detection-engine/.env
+      - ./Aegilon/detection-engine/.env
     networks:
       - wazuh_net
     depends_on:
@@ -31,12 +31,12 @@ services:
         condition: service_healthy
 
   risk-engine:
-    build: ./antigravity/risk-engine
+    build: ./Aegilon/risk-engine
     container_name: aegilon-risk-engine
     volumes:
-      - ./antigravity/risk-engine:/app
+      - ./Aegilon/risk-engine:/app
     env_file:
-      - ./antigravity/risk-engine/.env
+      - ./Aegilon/risk-engine/.env
     networks:
       - wazuh_net
     depends_on:
@@ -44,12 +44,12 @@ services:
         condition: service_healthy
 
   automation-engine:
-    build: ./antigravity/automation-engine
+    build: ./Aegilon/automation-engine
     container_name: aegilon-automation-engine
     volumes:
-      - ./antigravity/automation-engine:/app
+      - ./Aegilon/automation-engine:/app
     env_file:
-      - ./antigravity/automation-engine/.env
+      - ./Aegilon/automation-engine/.env
     networks:
       - wazuh_net
     depends_on:
@@ -57,7 +57,7 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./antigravity/frontend
+    build: ./Aegilon/frontend
     container_name: aegilon-frontend
     ports:
       - "3002:3000"
