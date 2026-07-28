@@ -85,3 +85,4 @@ class IncidentStats(BaseModel):
     most_triggered_rules: List[Dict[str, Any]]
     total_hosts: int
     active_alerts: int
+    trend_data: Optional[Dict[str, Any]] = None

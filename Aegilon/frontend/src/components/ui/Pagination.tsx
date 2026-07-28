@@ -5,18 +5,20 @@ export function Pagination({
   skip,
   limit,
   count,
+  hasNext,
   onPrev,
   onNext,
 }: {
   skip: number;
   limit: number;
   count: number;
+  hasNext?: boolean;
   onPrev: () => void;
   onNext: () => void;
 }) {
   const page = Math.floor(skip / limit) + 1;
   const hasPrev = skip > 0;
-  const hasNext = count === limit;
+  const isNextEnabled = hasNext !== undefined ? hasNext : count === limit;
 
   return (
     <div className="flex items-center justify-between border-t border-border pt-4">
@@ -27,7 +29,7 @@ export function Pagination({
         <Button variant="secondary" onClick={onPrev} disabled={!hasPrev}>
           <ChevronLeft size={14} /> Prev
         </Button>
-        <Button variant="secondary" onClick={onNext} disabled={!hasNext}>
+        <Button variant="secondary" onClick={onNext} disabled={!isNextEnabled}>
           Next <ChevronRight size={14} />
         </Button>
       </div>

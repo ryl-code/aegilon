@@ -1,17 +1,20 @@
 services:
+
+
   backend:
     build: ./Aegilon/backend
     container_name: aegilon-backend
+
     ports:
       - "8080:8080"
     volumes:
       - ./Aegilon/backend:/app
     env_file:
-      - ./Aegilon/backend/.env
+      - ./Aegilon/.env
     networks:
       - wazuh_net
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -23,7 +26,7 @@ services:
     volumes:
       - ./Aegilon/detection-engine:/app
     env_file:
-      - ./Aegilon/detection-engine/.env
+      - ./Aegilon/.env
     networks:
       - wazuh_net
     depends_on:
@@ -36,7 +39,7 @@ services:
     volumes:
       - ./Aegilon/risk-engine:/app
     env_file:
-      - ./Aegilon/risk-engine/.env
+      - ./Aegilon/.env
     networks:
       - wazuh_net
     depends_on:
@@ -49,7 +52,7 @@ services:
     volumes:
       - ./Aegilon/automation-engine:/app
     env_file:
-      - ./Aegilon/automation-engine/.env
+      - ./Aegilon/.env
     networks:
       - wazuh_net
     depends_on:
