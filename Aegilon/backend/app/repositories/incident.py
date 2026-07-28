@@ -127,9 +127,11 @@ class IncidentRepository(BaseRepository[Incident]):
         active_alerts = (await db.execute(alerts_count_stmt)).scalar() or 0
 
         from datetime import timedelta
-        now = datetime.now()
+        from zoneinfo import ZoneInfo
+        wib = ZoneInfo("Asia/Jakarta")
+        now = datetime.now(wib)
         
-        # Generate strict time buckets
+        # Generate strict time buckets in WIB (Asia/Jakarta, UTC+7)
         hourly_buckets = [(now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=i)).strftime('%H:00') for i in range(23, -1, -1)]
         daily_buckets = [(now - timedelta(days=i)).strftime('%d %b') for i in range(6, -1, -1)]
         monthly_buckets = []
@@ -141,40 +143,40 @@ class IncidentRepository(BaseRepository[Incident]):
                 y -= 1
             monthly_buckets.append(datetime(y, m, 1).strftime('%b %Y'))
 
-        # Trend Data - Hourly (Last 24h)
+        # Trend Data - Hourly (Last 24h aligned to Asia/Jakarta WIB timezone)
         hourly_incidents_stmt = text("""
-            SELECT to_char(date_trunc('hour', created_at), 'HH24:00') as name, COUNT(id) as cnt
+            SELECT to_char(date_trunc('hour', created_at AT TIME ZONE 'Asia/Jakarta'), 'HH24:00') as name, COUNT(id) as cnt
             FROM incidents WHERE created_at >= NOW() - INTERVAL '24 hours'
-            GROUP BY date_trunc('hour', created_at)
+            GROUP BY date_trunc('hour', created_at AT TIME ZONE 'Asia/Jakarta')
         """)
         hourly_alerts_stmt = text("""
-            SELECT to_char(date_trunc('hour', created_at), 'HH24:00') as name, COUNT(id) as cnt
+            SELECT to_char(date_trunc('hour', created_at AT TIME ZONE 'Asia/Jakarta'), 'HH24:00') as name, COUNT(id) as cnt
             FROM alerts WHERE created_at >= NOW() - INTERVAL '24 hours'
-            GROUP BY date_trunc('hour', created_at)
+            GROUP BY date_trunc('hour', created_at AT TIME ZONE 'Asia/Jakarta')
         """)
         
-        # Trend Data - Daily (Last 7d)
+        # Trend Data - Daily (Last 7d aligned to Asia/Jakarta WIB timezone)
         daily_incidents_stmt = text("""
-            SELECT to_char(date_trunc('day', created_at), 'DD Mon') as name, COUNT(id) as cnt
+            SELECT to_char(date_trunc('day', created_at AT TIME ZONE 'Asia/Jakarta'), 'DD Mon') as name, COUNT(id) as cnt
             FROM incidents WHERE created_at >= NOW() - INTERVAL '7 days'
-            GROUP BY date_trunc('day', created_at)
+            GROUP BY date_trunc('day', created_at AT TIME ZONE 'Asia/Jakarta')
         """)
         daily_alerts_stmt = text("""
-            SELECT to_char(date_trunc('day', created_at), 'DD Mon') as name, COUNT(id) as cnt
+            SELECT to_char(date_trunc('day', created_at AT TIME ZONE 'Asia/Jakarta'), 'DD Mon') as name, COUNT(id) as cnt
             FROM alerts WHERE created_at >= NOW() - INTERVAL '7 days'
-            GROUP BY date_trunc('day', created_at)
+            GROUP BY date_trunc('day', created_at AT TIME ZONE 'Asia/Jakarta')
         """)
         
         # Trend Data - Monthly (Last 3m)
         monthly_incidents_stmt = text("""
-            SELECT to_char(date_trunc('month', created_at), 'Mon YYYY') as name, COUNT(id) as cnt
+            SELECT to_char(date_trunc('month', created_at AT TIME ZONE 'Asia/Jakarta'), 'Mon YYYY') as name, COUNT(id) as cnt
             FROM incidents WHERE created_at >= NOW() - INTERVAL '3 months'
-            GROUP BY date_trunc('month', created_at)
+            GROUP BY date_trunc('month', created_at AT TIME ZONE 'Asia/Jakarta')
         """)
         monthly_alerts_stmt = text("""
-            SELECT to_char(date_trunc('month', created_at), 'Mon YYYY') as name, COUNT(id) as cnt
+            SELECT to_char(date_trunc('month', created_at AT TIME ZONE 'Asia/Jakarta'), 'Mon YYYY') as name, COUNT(id) as cnt
             FROM alerts WHERE created_at >= NOW() - INTERVAL '3 months'
-            GROUP BY date_trunc('month', created_at)
+            GROUP BY date_trunc('month', created_at AT TIME ZONE 'Asia/Jakarta')
         """)
 
         def build_filled_trend(inc_rows, alt_rows, buckets):

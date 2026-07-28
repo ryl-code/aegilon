@@ -100,6 +100,7 @@ export function ThreatAreaChart({ hourlyData, dailyData, monthlyData }: ThreatAr
             fontSize={11} 
             tickLine={false} 
             axisLine={false}
+            interval={mode === "24h" ? 1 : 0}
           />
           <YAxis 
             stroke="var(--text-muted)" 
