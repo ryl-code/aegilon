@@ -1,0 +1,387 @@
+<!--
+  - AEGILON Network Detection Pack
+  - Focus: Network-related detections based on Osquery network_connections and listening_ports telemetry
+  - Version: 1.2
+  - Rules ID: 120001 - 120020 (plus base SIDs 120030 - 120032)
+-->
+
+<group name="osquery,aegilon_network,">
+
+  <!--
+    Rule ID: 120001
+    Purpose: Mendeteksi koneksi reverse shell dari cmd/powershell/nc/bash ke port yang tidak lazim.
+    MITRE Technique: T1059
+    Expected Detection: Koneksi dari shell ke port reverse shell (4444, 5555, 6666, 1337, 31337)
+  -->
+  <rule id="120001" level="15">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.remote_port" type="pcre2">^(4444|5555|6666|1337|31337)$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)(cmd\.exe|powershell\.exe|nc\.exe|bash\.exe)$</field>
+    <description>AEGILON - Reverse Shell Connection</description>
+    <group>network_connection,reverse_shell,</group>
+    <mitre>
+      <id>T1059</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120002
+    Purpose: Mendeteksi service yang membuka listening port 4444 (sering digunakan Metasploit/Netcat).
+    MITRE Technique: T1571
+    Expected Detection: Port 4444 berstatus LISTENING
+  -->
+  <rule id="120002" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^listening_ports$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.port">^4444$</field>
+    <description>AEGILON - Listening Port 4444</description>
+    <group>listening_port,reverse_shell,</group>
+    <mitre>
+      <id>T1571</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120003
+    Purpose: Mendeteksi service yang membuka listening port 5555.
+    MITRE Technique: T1571
+    Expected Detection: Port 5555 berstatus LISTENING
+  -->
+  <rule id="120003" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^listening_ports$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.port">^5555$</field>
+    <description>AEGILON - Listening Port 5555</description>
+    <group>listening_port,reverse_shell,</group>
+    <mitre>
+      <id>T1571</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120004
+    Purpose: Mendeteksi service yang membuka listening port 1337 (sering digunakan exploit).
+    MITRE Technique: T1571
+    Expected Detection: Port 1337 berstatus LISTENING
+  -->
+  <rule id="120004" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^listening_ports$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.port">^1337$</field>
+    <description>AEGILON - Listening Port 1337</description>
+    <group>listening_port,reverse_shell,</group>
+    <mitre>
+      <id>T1571</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120005
+    Purpose: Mendeteksi service yang membuka listening port 31337 (BackOrifice/exploit).
+    MITRE Technique: T1571
+    Expected Detection: Port 31337 berstatus LISTENING
+  -->
+  <rule id="120005" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^listening_ports$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.port">^31337$</field>
+    <description>AEGILON - Listening Port 31337</description>
+    <group>listening_port,reverse_shell,</group>
+    <mitre>
+      <id>T1571</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120006
+    Purpose: Mendeteksi service yang membuka listening port 9001 (sering digunakan web shell/reverse shell).
+    MITRE Technique: T1571
+    Expected Detection: Port 9001 berstatus LISTENING
+  -->
+  <rule id="120006" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^listening_ports$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.port">^9001$</field>
+    <description>AEGILON - Listening Port 9001</description>
+    <group>listening_port,reverse_shell,</group>
+    <mitre>
+      <id>T1571</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120030 (Base Rule)
+    Purpose: Base rule to match Osquery differential network connection creations.
+  -->
+  <rule id="120030" level="0">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <description>AEGILON - Network Connection Base Event</description>
+    <group>network_connection,</group>
+  </rule>
+
+  <!--
+    Rule ID: 120007
+    Purpose: Mendeteksi aktivitas scanning port/network berdasarkan frekuensi koneksi yang tinggi.
+    MITRE Technique: T1046
+    Expected Detection: Terlalu banyak koneksi dalam waktu singkat (20 koneksi / 60 detik)
+  -->
+  <rule id="120007" level="10" frequency="20" timeframe="60">
+    <if_matched_sid>120030</if_matched_sid>
+    <description>AEGILON - Port Scan Activity</description>
+    <group>network_connection,reconnaissance,port_scan,</group>
+    <mitre>
+      <id>T1046</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120008
+    Purpose: Mendeteksi koneksi jaringan yang dibuat oleh tools Nmap.
+    MITRE Technique: T1046
+    Expected Detection: Eksekusi nmap.exe melakukan koneksi
+  -->
+  <rule id="120008" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)nmap\.exe$</field>
+    <description>AEGILON - Nmap Network Activity</description>
+    <group>network_connection,reconnaissance,nmap,</group>
+    <mitre>
+      <id>T1046</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120009
+    Purpose: Mendeteksi koneksi jaringan yang dibuat oleh tools Masscan.
+    MITRE Technique: T1046
+    Expected Detection: Eksekusi masscan.exe melakukan koneksi
+  -->
+  <rule id="120009" level="15">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)masscan\.exe$</field>
+    <description>AEGILON - Masscan Network Activity</description>
+    <group>network_connection,reconnaissance,masscan,</group>
+    <mitre>
+      <id>T1046</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120010
+    Purpose: Mendeteksi koneksi keluar menggunakan protokol FTP untuk transfer data (exfiltration).
+    MITRE Technique: T1048
+    Expected Detection: Koneksi ke remote port 21
+  -->
+  <rule id="120010" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.remote_port">^21$</field>
+    <description>AEGILON - Outbound FTP Connection</description>
+    <group>network_connection,exfiltration,ftp,</group>
+    <mitre>
+      <id>T1048</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120011
+    Purpose: Mendeteksi aktivitas transfer data menggunakan curl.exe.
+    MITRE Technique: T1048
+    Expected Detection: Koneksi keluar dibuat oleh curl.exe
+  -->
+  <rule id="120011" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)curl\.exe$</field>
+    <description>AEGILON - Outbound CURL Connection</description>
+    <group>network_connection,exfiltration,curl,</group>
+    <mitre>
+      <id>T1048</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120012
+    Purpose: Mendeteksi aktivitas transfer data menggunakan scp.exe/winscp.exe.
+    MITRE Technique: T1048
+    Expected Detection: Koneksi keluar dibuat oleh scp.exe atau winscp.exe
+  -->
+  <rule id="120012" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)(scp|winscp)\.exe$</field>
+    <description>AEGILON - Outbound SCP Connection</description>
+    <group>network_connection,exfiltration,scp,</group>
+    <mitre>
+      <id>T1048</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120013
+    Purpose: Mendeteksi shell (cmd/powershell) membuat koneksi TCP keluar yang tidak biasa.
+    MITRE Technique: T1043
+    Expected Detection: Koneksi TCP keluar oleh cmd.exe atau powershell.exe
+  -->
+  <rule id="120013" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)(powershell|cmd)\.exe$</field>
+    <description>AEGILON - Suspicious External Connection</description>
+    <group>network_connection,c2,</group>
+    <mitre>
+      <id>T1043</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120014
+    Purpose: Mendeteksi koneksi keluar menuju IP publik (non-RFC 1918) yang berpotensi menjadi C2 server.
+    MITRE Technique: T1043
+    Expected Detection: Koneksi ke alamat IP publik
+  -->
+  <rule id="120014" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.remote_address" type="pcre2">^(127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|0\.0\.0\.0|::1)$</field>
+    <description>AEGILON - Rare Destination IP</description>
+    <group>network_connection,c2,rare_destination,</group>
+    <mitre>
+      <id>T1043</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120031 (Base Rule)
+    Purpose: Base rule for outbound network connections to public IPs.
+  -->
+  <rule id="120031" level="0">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.remote_address" type="pcre2">^(127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|0\.0\.0\.0|::1)$</field>
+    <description>AEGILON - Outbound Network Connection to Public IP Base Event</description>
+    <group>network_connection,c2,</group>
+  </rule>
+
+  <!--
+    Rule ID: 120015
+    Purpose: Mendeteksi indikasi beaconing (koneksi periodik berulang-ulang ke IP publik).
+    MITRE Technique: T1071
+    Expected Detection: Koneksi berulang-ulang ke IP publik dalam waktu singkat (30 koneksi / 120 detik)
+  -->
+  <rule id="120015" level="13" frequency="30" timeframe="120">
+    <if_matched_sid>120031</if_matched_sid>
+    <description>AEGILON - Beaconing Activity</description>
+    <group>network_connection,c2,beaconing,</group>
+    <mitre>
+      <id>T1071</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120016
+    Purpose: Mendeteksi eksekusi PowerShell yang melakukan koneksi jaringan.
+    MITRE Technique: T1059.001
+    Expected Detection: PowerShell.exe melakukan koneksi keluar
+  -->
+  <rule id="120016" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)powershell\.exe$</field>
+    <description>AEGILON - PowerShell Network Connection</description>
+    <group>network_connection,reverse_shell,powershell,</group>
+    <mitre>
+      <id>T1059.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120017
+    Purpose: Mendeteksi Command Prompt yang melakukan koneksi jaringan.
+    MITRE Technique: T1059.003
+    Expected Detection: Cmd.exe melakukan koneksi keluar
+  -->
+  <rule id="120017" level="13">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.path" type="pcre2">(?i)cmd\.exe$</field>
+    <description>AEGILON - CMD Network Connection</description>
+    <group>network_connection,reverse_shell,cmd,</group>
+    <mitre>
+      <id>T1059.003</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120018
+    Purpose: Mendeteksi penyalahgunaan SMB (port 445) untuk lateral movement/remote access.
+    MITRE Technique: T1021.002
+    Expected Detection: Koneksi ke port remote 445
+  -->
+  <rule id="120018" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.remote_port">^445$</field>
+    <description>AEGILON - SMB Connection Abuse</description>
+    <group>network_connection,lateral_movement,smb,</group>
+    <mitre>
+      <id>T1021.002</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120019
+    Purpose: Mendeteksi penyalahgunaan RDP (port 3389) untuk lateral movement/unauthorized remote login.
+    MITRE Technique: T1021.001
+    Expected Detection: Koneksi ke port remote 3389
+  -->
+  <rule id="120019" level="10">
+    <if_sid>24010</if_sid>
+    <field name="osquery.name">^network_connections$</field>
+    <field name="osquery.action">^added$</field>
+    <field name="osquery.columns.remote_port">^3389$</field>
+    <description>AEGILON - RDP Connection Abuse</description>
+    <group>network_connection,lateral_movement,rdp,</group>
+    <mitre>
+      <id>T1021.001</id>
+    </mitre>
+  </rule>
+
+  <!--
+    Rule ID: 120020
+    Purpose: Mendeteksi jumlah koneksi konkuren yang sangat tinggi (indikasi DDOS/Recon/Anomali).
+    MITRE Technique: T1095
+    Expected Detection: Terlalu banyak koneksi dalam waktu singkat (50 koneksi / 60 detik)
+  -->
+  <rule id="120020" level="10" frequency="50" timeframe="60">
+    <if_matched_sid>120030</if_matched_sid>
+    <description>AEGILON - Multiple Concurrent Connections</description>
+    <group>network_connection,anomaly,</group>
+    <mitre>
+      <id>T1095</id>
+    </mitre>
+  </rule>
+
+</group>
