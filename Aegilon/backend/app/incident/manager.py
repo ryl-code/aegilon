@@ -61,6 +61,20 @@ class IncidentManager:
                 performed_by="system"
             )
             
+            from app.services.telegram import telegram_service
+            host_name = getattr(alert.host, "hostname", str(alert.host_id)) if alert.host else str(alert.host_id)
+            import asyncio
+            asyncio.create_task(
+                telegram_service.send_incident_alert(
+                    incident_number=updated_inc.incident_number,
+                    title=f"[{severity.upper()}] {updated_inc.title} (Count: {updated_inc.occurrence})",
+                    severity=severity,
+                    host_name=host_name,
+                    risk_score=updated_inc.risk_score or 50.0,
+                    category=category
+                )
+            )
+
             return updated_inc
         else:
             logger.info(f"[INFO] Creating new incident for rule '{rule_name}' on host {alert.host_id}")
@@ -104,21 +118,20 @@ class IncidentManager:
                 performed_by="system"
             )
 
-            # Trigger Telegram Alert Notification for High/Critical Incidents
-            if severity.lower() in ["critical", "high"]:
-                from app.services.telegram import telegram_service
-                host_name = getattr(alert.host, "hostname", str(alert.host_id)) if alert.host else str(alert.host_id)
-                import asyncio
-                asyncio.create_task(
-                    telegram_service.send_incident_alert(
-                        incident_number=new_inc.incident_number,
-                        title=title,
-                        severity=severity,
-                        host_name=host_name,
-                        risk_score=new_inc.risk_score or 75.0,
-                        category=category
-                    )
+            # Trigger Telegram Alert Notification for ALL Incidents (Presentation Demo Mode)
+            from app.services.telegram import telegram_service
+            host_name = getattr(alert.host, "hostname", str(alert.host_id)) if alert.host else str(alert.host_id)
+            import asyncio
+            asyncio.create_task(
+                telegram_service.send_incident_alert(
+                    incident_number=new_inc.incident_number,
+                    title=title,
+                    severity=severity,
+                    host_name=host_name,
+                    risk_score=new_inc.risk_score or 50.0,
+                    category=category
                 )
+            )
             
             return new_inc
 

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/logo.jpg" alt="AEGILON Logo" width="480" />
+</p>
+
 # 🛡️ AEGILON
 
 Low-Overhead Extended Detection and Response (XDR) Platform.

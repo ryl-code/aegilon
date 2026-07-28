@@ -57,12 +57,16 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     <div className="flex h-full w-64 flex-col bg-[#1a64ea] text-white p-5 rounded-tr-3xl rounded-br-3xl shadow-xl justify-between overflow-y-auto select-none">
       <div>
         {/* Brand Logo */}
-        <div className="flex items-center gap-2.5 px-2 py-3 mb-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md shadow-sm">
-            <Shield className="h-5 w-5 text-white" />
+        <div className="flex items-center gap-3 px-2 py-3 mb-4">
+          <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/90 overflow-hidden shadow-md ring-1 ring-white/20">
+            <img
+              src="/logo.jpg"
+              alt="AEGILON Logo"
+              className="h-full w-full object-cover"
+            />
           </div>
           <div>
-            <span className="text-lg font-extrabold tracking-tight text-white">AEGILON</span>
+            <span className="text-lg font-extrabold tracking-tight text-white block leading-tight">AEGILON</span>
             <span className="block text-[10px] font-medium text-blue-100/80 uppercase tracking-widest">XDR Defense</span>
           </div>
         </div>

@@ -21,9 +21,10 @@ class Settings(BaseSettings):
     BACKEND_URL: str = "http://localhost:8080"
     FRONTEND_URL: str = "http://localhost:3000"
 
-    # Telegram Notification
+    # Telegram Notification & n8n Integration
     TELEGRAM_BOT_TOKEN: str = ""
     TELEGRAM_CHAT_ID: str = ""
+    N8N_WEBHOOK_URL: str = "http://n8n:5678/webhook/telegram-notify"
 
     # Default admin seed (dev only, override via env in production)
     ADMIN_SEED_EMAIL: str = "admin@aegilon.com"
