@@ -15,11 +15,12 @@ import { Pagination } from "@/components/ui/Pagination";
 import { Loading } from "@/components/ui/Loading";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { PageHeader, PageCard } from "@/components/ui/PageHeader";
+import { ExportButtons } from "@/components/ui/ExportButtons";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatDateTime } from "@/utils/format";
 import type { ResponseAction } from "@/types";
 
-const LIMIT = 5;
+const LIMIT = 25;
 
 export default function ResponsesPage() {
   const router = useRouter();
@@ -34,6 +35,10 @@ export default function ResponsesPage() {
     queryKey: ["responses", skip],
     queryFn: () => getResponses(skip, LIMIT),
   });
+
+  const fetchAllForExport = async () => {
+    return await getResponses(0, 10000);
+  };
 
   const createMutation = useMutation({
     mutationFn: (payload: { action: string; message: string }) =>
@@ -85,6 +90,12 @@ export default function ResponsesPage() {
         badgeIcon={<Zap size={13} />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <ExportButtons
+              data={filtered}
+              filenamePrefix="aegilon_responses"
+              title="AEGILON XDR Response Actions Report"
+              onFetchAllData={fetchAllForExport}
+            />
             <SearchBox value={search} onChange={setSearch} placeholder="Search action..." />
             <Select value={status} onChange={setStatus} options={statusOptions} placeholder="All statuses" />
             <button

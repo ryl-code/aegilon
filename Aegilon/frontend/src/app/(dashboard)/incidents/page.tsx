@@ -18,7 +18,7 @@ import { AnomalyBadge } from "@/components/ui/AnomalyBadge";
 import { formatDateTime } from "@/utils/format";
 import type { Incident } from "@/types";
 
-const LIMIT = 5;
+const LIMIT = 25;
 
 export default function IncidentsPage() {
   const router = useRouter();
@@ -37,6 +37,15 @@ export default function IncidentsPage() {
         incident_number: search || undefined,
       }),
   });
+
+  const fetchAllForExport = async () => {
+    return await getIncidents({
+      skip: 0,
+      limit: 10000,
+      severity: severity !== "ALL" ? severity : undefined,
+      incident_number: search || undefined,
+    });
+  };
 
   const filtered = (data ?? []).filter((i) => {
     if (!search) return true;
@@ -89,7 +98,12 @@ export default function IncidentsPage() {
         badgeIcon={<Flame size={13} />}
         actions={
           <>
-            <ExportButtons data={filtered} filenamePrefix="aegilon_incidents" />
+            <ExportButtons
+              data={filtered}
+              filenamePrefix="aegilon_incidents"
+              title="AEGILON XDR Incidents Vault Report"
+              onFetchAllData={fetchAllForExport}
+            />
             <SeverityLegend />
           </>
         }

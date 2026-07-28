@@ -17,7 +17,7 @@ import { ExportButtons } from "@/components/ui/ExportButtons";
 import { formatDateTime } from "@/utils/format";
 import type { Alert } from "@/types";
 
-const LIMIT = 5;
+const LIMIT = 25;
 
 export default function AlertsPage() {
   const [skip, setSkip] = useState(0);
@@ -30,6 +30,10 @@ export default function AlertsPage() {
     queryKey: ["alerts", skip, severity, timeRange],
     queryFn: () => getAlerts(skip, LIMIT, severity, timeRange),
   });
+
+  const fetchAllForExport = async () => {
+    return await getAlerts(0, 10000, severity, timeRange);
+  };
 
   const filtered = (data ?? []).filter((a) => {
     if (!search) return true;
@@ -73,7 +77,12 @@ export default function AlertsPage() {
         badgeIcon={<ShieldAlert size={13} />}
         actions={
           <>
-            <ExportButtons data={filtered} filenamePrefix="aegilon_alerts" />
+            <ExportButtons
+              data={filtered}
+              filenamePrefix="aegilon_alerts"
+              title="AEGILON XDR Detection Alerts Stream Report"
+              onFetchAllData={fetchAllForExport}
+            />
             <SeverityLegend />
           </>
         }
