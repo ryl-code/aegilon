@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 
 export interface ThreatDataPoint {
   name: string;
@@ -77,7 +77,7 @@ export function ThreatAreaChart({ hourlyData, dailyData, monthlyData }: ThreatAr
                 : "text-text-muted hover:text-text"
             }`}
           >
-            Monthly (Bulanan - Since Jun)
+            Monthly (Bulanan - 3 Bulan Terakhir)
           </button>
         </div>
         
@@ -92,17 +92,7 @@ export function ThreatAreaChart({ hourlyData, dailyData, monthlyData }: ThreatAr
       </div>
 
       <ResponsiveContainer width="100%" height={210}>
-        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-          <defs>
-            <linearGradient id="colorAlerts" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.35}/>
-              <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-            </linearGradient>
-            <linearGradient id="colorIncidents" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ef4444" stopOpacity={0.35}/>
-              <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-            </linearGradient>
-          </defs>
+        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} vertical={false} />
           <XAxis 
             dataKey="name" 
@@ -126,24 +116,21 @@ export function ThreatAreaChart({ hourlyData, dailyData, monthlyData }: ThreatAr
               color: "var(--text)"
             }}
             itemStyle={{ color: "var(--text)" }}
+            cursor={{ fill: "var(--surface-hover)" }}
           />
-          <Area 
-            type="monotone" 
+          <Bar 
             dataKey="Alerts" 
-            stroke="var(--primary)" 
-            fillOpacity={1} 
-            fill="url(#colorAlerts)" 
-            strokeWidth={2}
+            fill="var(--primary)" 
+            radius={[4, 4, 0, 0]}
+            maxBarSize={40}
           />
-          <Area 
-            type="monotone" 
+          <Bar 
             dataKey="Incidents" 
-            stroke="#ef4444" 
-            fillOpacity={1} 
-            fill="url(#colorIncidents)" 
-            strokeWidth={2}
+            fill="#ef4444" 
+            radius={[4, 4, 0, 0]}
+            maxBarSize={40}
           />
-        </AreaChart>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );

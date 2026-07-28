@@ -18,7 +18,7 @@ import { AnomalyBadge } from "@/components/ui/AnomalyBadge";
 import { formatDateTime } from "@/utils/format";
 import type { Incident } from "@/types";
 
-const LIMIT = 25;
+const LIMIT = 5;
 
 export default function IncidentsPage() {
   const router = useRouter();
@@ -119,6 +119,7 @@ export default function IncidentsPage() {
             skip={skip}
             limit={LIMIT}
             count={filtered.length}
+            hasNext={data?.length === LIMIT}
             onPrev={() => setSkip((s) => Math.max(0, s - LIMIT))}
             onNext={() => setSkip((s) => s + LIMIT)}
           />

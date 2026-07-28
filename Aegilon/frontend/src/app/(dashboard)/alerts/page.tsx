@@ -17,7 +17,7 @@ import { ExportButtons } from "@/components/ui/ExportButtons";
 import { formatDateTime } from "@/utils/format";
 import type { Alert } from "@/types";
 
-const LIMIT = 25;
+const LIMIT = 5;
 
 export default function AlertsPage() {
   const [skip, setSkip] = useState(0);
@@ -103,6 +103,7 @@ export default function AlertsPage() {
             skip={skip}
             limit={LIMIT}
             count={filtered.length}
+            hasNext={data?.length === LIMIT}
             onPrev={() => setSkip((s) => Math.max(0, s - LIMIT))}
             onNext={() => setSkip((s) => s + LIMIT)}
           />
