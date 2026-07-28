@@ -25,6 +25,20 @@ async def send_telegram_alert(payload: TelegramNotificationPayload):
         logger.warning("Telegram token atau chat ID belum dikonfigurasi.")
         return {"status": "skipped", "reason": "No credentials configured"}
 
+    n8n_url = getattr(settings, "N8N_WEBHOOK_URL", None)
+    if n8n_url:
+        n8n_data = payload.model_dump()
+        n8n_data["bot_token"] = bot_token
+        n8n_data["chat_id"] = chat_id
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                n8n_resp = await client.post(n8n_url, json=n8n_data)
+                if n8n_resp.status_code in [200, 201]:
+                    logger.info("Notifikasi berhasil diteruskan via n8n webhook.")
+                    return {"status": "success", "message": "Notification sent via n8n webhook"}
+        except Exception as e:
+            logger.warning(f"Gagal mengirim via n8n: {str(e)}. Menggunakan koneksi Telegram langsung.")
+
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     
     from datetime import datetime

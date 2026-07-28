@@ -22,6 +22,27 @@ class TelegramService:
             logger.info("Telegram notification skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured.")
             return False
 
+        n8n_url = getattr(settings, "N8N_WEBHOOK_URL", None)
+        if n8n_url:
+            n8n_payload = {
+                "incident_id": incident_number,
+                "title": title,
+                "severity": severity,
+                "host": host_name,
+                "risk_score": risk_score,
+                "recommendation": f"Category: {category}. Check Aegilon Dashboard.",
+                "bot_token": token,
+                "chat_id": chat_id
+            }
+            try:
+                async with httpx.AsyncClient(timeout=5.0, verify=False) as client:
+                    n8n_resp = await client.post(n8n_url, json=n8n_payload)
+                    if n8n_resp.status_code in [200, 201]:
+                        logger.info(f"Successfully dispatched Incident {incident_number} to n8n webhook")
+                        return True
+            except Exception as e:
+                logger.warning(f"Could not dispatch to n8n webhook: {str(e)}. Falling back to direct Telegram API.")
+
         icon = "🔴" if severity.lower() == "critical" else "🟠" if severity.lower() == "high" else "🟡"
 
         message_text = (

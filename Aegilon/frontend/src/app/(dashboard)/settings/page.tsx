@@ -29,6 +29,19 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
+        {/* Interface Theme Card & Official Logo */}
+        <Card className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-border/40 pb-3">
+            <Monitor className="text-primary" size={18} />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text">Visual Identity & Logo</h3>
+          </div>
+          <div className="relative overflow-hidden rounded-xl bg-black border border-border p-3 flex items-center justify-center">
+            <img src="/logo.jpg" alt="Official AEGILON Logo" className="h-24 w-auto object-contain rounded" />
+          </div>
+          <p className="text-xs text-text-muted leading-relaxed">
+            AEGILON XDR uses a high-contrast Cyberpunk Cyber Defense brand identity paired with a clean <strong>Royal Blue Light Theme</strong> for maximum SOC analyst readability.
+          </p>
+        </Card>
 
         {/* System Status Card */}
         <Card className="md:col-span-2 space-y-4">

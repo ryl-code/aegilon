@@ -1,0 +1,86 @@
+{
+  "name": "Telegram Notification Workflow (Aegilon / General)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram-notify",
+        "responseMode": "onReceived",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ],
+      "id": "webhook-trigger",
+      "webhookId": "telegram-notify"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format Alert Message for Telegram (HTML Mode)\nconst payload = $input.item.json.body || $input.item.json;\n\nconst severity = (payload.severity || 'INFO').toUpperCase();\nconst severityEmoji = {\n  'CRITICAL': '🚨',\n  'HIGH': '🟠',\n  'MEDIUM': '🟡',\n  'LOW': '🔵',\n  'INFO': 'ℹ️'\n}[severity] || '⚠️';\n\nconst title = payload.title || 'Notification Alert';\nconst incidentId = payload.incident_id || 'N/A';\nconst host = payload.host || 'N/A';\nconst riskScore = payload.risk_score !== undefined ? payload.risk_score : 'N/A';\nconst recommendation = payload.recommendation || 'N/A';\nconst nowStr = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });\n\nlet message = `${severityEmoji} <b>AEGILON NOTIFICATION</b> ${severityEmoji}\n\n`;\nmessage += `<b>Title:</b> ${title}\n`;\nmessage += `<b>Severity:</b> ${severity}\n`;\nmessage += `<b>Risk Score:</b> ${riskScore}/100\n`;\nmessage += `<b>Host:</b> <code>${host}</code>\n`;\nmessage += `<b>Incident ID:</b> <code>${incidentId}</code>\n`;\nif (recommendation !== 'N/A') {\n  message += `<b>Recommendation:</b> ${recommendation}\n`;\n}\nmessage += `\n⏰ <b>Timestamp:</b> ${nowStr} WIB`;\n\nconst botToken = payload.bot_token || $env.TELEGRAM_BOT_TOKEN || '8896459477:AAECPoVHIqELcWQci65ra4ML0GCH4KjhubU';\nconst chatId = payload.chat_id || $env.TELEGRAM_CHAT_ID || '1345953125';\n\nreturn {\n  json: {\n    bot_token: botToken,\n    chat_id: chatId,\n    text: message,\n    parse_mode: 'HTML'\n  }\n};"
+      },
+      "name": "Format Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "id": "format-message"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.telegram.org/bot{{ $json.bot_token }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ chat_id: $json.chat_id, text: $json.text, parse_mode: $json.parse_mode }) }}",
+        "options": {}
+      },
+      "name": "Send Telegram HTTP API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        300
+      ],
+      "id": "send-telegram-http"
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Message": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram HTTP API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateId": "aegilon-telegram-notif"
+  },
+  "tags": []
+}
