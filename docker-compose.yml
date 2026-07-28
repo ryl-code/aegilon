@@ -10,7 +10,7 @@ services:
     volumes:
       - ./Aegilon/backend:/app
     env_file:
-      - ./Aegilon/.env
+      - ./.env
     networks:
       - wazuh_net
     healthcheck:
@@ -26,7 +26,7 @@ services:
     volumes:
       - ./Aegilon/detection-engine:/app
     env_file:
-      - ./Aegilon/.env
+      - ./.env
     networks:
       - wazuh_net
     depends_on:
@@ -39,7 +39,7 @@ services:
     volumes:
       - ./Aegilon/risk-engine:/app
     env_file:
-      - ./Aegilon/.env
+      - ./.env
     networks:
       - wazuh_net
     depends_on:
@@ -52,7 +52,7 @@ services:
     volumes:
       - ./Aegilon/automation-engine:/app
     env_file:
-      - ./Aegilon/.env
+      - ./.env
     networks:
       - wazuh_net
     depends_on:
@@ -64,6 +64,8 @@ services:
     container_name: aegilon-frontend
     ports:
       - "3002:3000"
+    env_file:
+      - ./.env
     environment:
       - BACKEND_PROXY_TARGET=http://backend:8080
     networks:
@@ -85,7 +87,7 @@ services:
       - NODE_ENV=production
       - WEBHOOK_URL=http://localhost:5678/
     env_file:
-      - ./Aegilon/backend/.env
+      - ./.env
     volumes:
       - n8n_data:/home/node/.n8n
     networks:

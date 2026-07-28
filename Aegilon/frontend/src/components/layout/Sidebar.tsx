@@ -60,7 +60,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         <div className="flex items-center gap-3 px-2 py-3 mb-4">
           <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/90 overflow-hidden shadow-md ring-1 ring-white/20">
             <img
-              src="/logo.jpg"
+              src="/logo.png"
               alt="AEGILON Logo"
               className="h-full w-full object-cover"
             />

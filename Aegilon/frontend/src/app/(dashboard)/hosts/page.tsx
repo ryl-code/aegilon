@@ -12,6 +12,7 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { Loading } from "@/components/ui/Loading";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { PageHeader, PageCard } from "@/components/ui/PageHeader";
+import { ExportButtons } from "@/components/ui/ExportButtons";
 import { useDebounce } from "@/hooks/useDebounce";
 import { formatDateTime } from "@/utils/format";
 import type { Host } from "@/types";
@@ -26,6 +27,10 @@ export default function HostsPage() {
     queryKey: ["hosts"],
     queryFn: () => getHosts(0, 200),
   });
+
+  const fetchAllForExport = async () => {
+    return await getHosts(0, 10000);
+  };
 
   const filtered = useMemo(() => {
     if (!data) return [];
@@ -72,6 +77,12 @@ export default function HostsPage() {
         badgeIcon={<Server size={13} />}
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <ExportButtons
+              data={filtered}
+              filenamePrefix="aegilon_hosts"
+              title="AEGILON XDR Monitored Hosts Report"
+              onFetchAllData={fetchAllForExport}
+            />
             <SearchBox value={search} onChange={setSearch} placeholder="Search hostname or IP..." />
             <Select value={status} onChange={setStatus} options={statusOptions} placeholder="All statuses" />
           </div>

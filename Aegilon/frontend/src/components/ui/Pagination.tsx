@@ -23,7 +23,7 @@ export function Pagination({
   return (
     <div className="flex items-center justify-between border-t border-border pt-4">
       <p className="text-xs text-text-muted">
-        Page {page} &middot; showing {count} item{count === 1 ? "" : "s"}
+        Page {page} &middot; showing {count} item{count === 1 ? "" : "s"} ({limit} per page)
       </p>
       <div className="flex gap-2">
         <Button variant="secondary" onClick={onPrev} disabled={!hasPrev}>

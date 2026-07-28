@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Settings, User, Monitor, Server, ShieldCheck, LogOut } from "lucide-react";
 import { getHealth } from "@/services/health";
 import { useAuth } from "@/providers/AuthProvider";
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Loading } from "@/components/ui/Loading";
@@ -28,6 +28,31 @@ export default function SettingsPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* User Profile Card */}
+        <Card className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-border/40 pb-3">
+            <User className="text-primary" size={18} />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text">Analyst Profile</h3>
+          </div>
+          <dl className="space-y-3">
+            <div>
+              <dt className="text-xs text-text-muted">Full Name</dt>
+              <dd className="mt-0.5 text-sm font-semibold text-text">{user?.name ?? "Analyst"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-text-muted">Email Address</dt>
+              <dd className="mt-0.5 text-sm font-mono text-text">{user?.email ?? "analyst@aegilon.sec"}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-text-muted">Role & Privilege Level</dt>
+              <dd className="mt-0.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary border border-primary/20">
+                  <ShieldCheck size={12} /> Security Analyst L2
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </Card>
 
         {/* Interface Theme Card & Official Logo */}
         <Card className="space-y-4">
@@ -99,7 +124,16 @@ export default function SettingsPage() {
           )}
         </Card>
 
-
+        {/* Session Management */}
+        <Card className="md:col-span-2 flex items-center justify-between">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text">Session Management</h3>
+            <p className="text-xs text-text-muted">Sign out of current analyst session</p>
+          </div>
+          <Button variant="danger" onClick={logout} className="flex items-center gap-1.5 text-xs">
+            <LogOut size={14} /> Logout
+          </Button>
+        </Card>
       </div>
     </div>
   );

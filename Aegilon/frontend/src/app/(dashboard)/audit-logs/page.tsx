@@ -15,7 +15,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { formatDateTime } from "@/utils/format";
 import type { AuditLog } from "@/types";
 
-const LIMIT = 5;
+const LIMIT = 25;
 
 export default function AuditLogsPage() {
   const [skip, setSkip] = useState(0);
@@ -26,6 +26,10 @@ export default function AuditLogsPage() {
     queryKey: ["audit-logs", skip],
     queryFn: () => getAuditLogs(skip, LIMIT),
   });
+
+  const fetchAllForExport = async () => {
+    return await getAuditLogs(0, 10000);
+  };
 
   const filtered = useMemo(() => {
     if (!data) return [];
@@ -59,7 +63,12 @@ export default function AuditLogsPage() {
         badgeIcon={<ScrollText size={13} />}
         actions={
           <div className="flex items-center gap-2">
-            <ExportButtons data={filtered} filenamePrefix="aegilon_audit_logs" />
+            <ExportButtons
+              data={filtered}
+              filenamePrefix="aegilon_audit_logs"
+              title="AEGILON XDR Security Audit Trails Report"
+              onFetchAllData={fetchAllForExport}
+            />
             <SearchBox value={search} onChange={setSearch} placeholder="Search user, action, resource..." />
           </div>
         }

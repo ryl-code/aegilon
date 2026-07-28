@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     ADMIN_SEED_PASSWORD: str = "admin123"
 
     model_config = ConfigDict(
-        env_file=".env",
+        env_file=(".env", "../../.env", "../.env"),
         extra="ignore"
     )
 
