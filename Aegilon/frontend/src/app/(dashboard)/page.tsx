@@ -69,32 +69,9 @@ export default function DashboardPage() {
   const agentLoad = Math.min(Math.round((activeAlertsCount / Math.max(totalHosts, 1)) * 20 + 25), 100);
   const slaCompliance = Math.min(Math.round(100 - (openIncidentsCount * 2.5)), 100);
 
-  const { hourlyData, dailyData, monthlyData } = useMemo(() => {
-    const hData = [
-      { name: "00:00", Alerts: Math.round(activeAlertsCount * 0.1), Incidents: 0 },
-      { name: "04:00", Alerts: Math.round(activeAlertsCount * 0.25), Incidents: 0 },
-      { name: "08:00", Alerts: Math.round(activeAlertsCount * 0.5), Incidents: 0 },
-      { name: "12:00", Alerts: Math.round(activeAlertsCount * 0.75), Incidents: 0 },
-      { name: "16:00", Alerts: Math.round(activeAlertsCount * 0.9), Incidents: 0 },
-      { name: "20:00", Alerts: activeAlertsCount, Incidents: openIncidentsCount },
-    ];
-
-    const dData = [
-      { name: "20 Jul", Alerts: Math.round(activeAlertsCount * 0.15), Incidents: 0 },
-      { name: "21 Jul", Alerts: Math.round(activeAlertsCount * 0.32), Incidents: 0 },
-      { name: "22 Jul", Alerts: Math.round(activeAlertsCount * 0.50), Incidents: 0 },
-      { name: "23 Jul", Alerts: Math.round(activeAlertsCount * 0.68), Incidents: 0 },
-      { name: "24 Jul", Alerts: Math.round(activeAlertsCount * 0.88), Incidents: 0 },
-      { name: "25 Jul", Alerts: activeAlertsCount, Incidents: openIncidentsCount },
-    ];
-
-    const mData = [
-      { name: "Jun 2026", Alerts: Math.round(activeAlertsCount * 0.45), Incidents: 0 },
-      { name: "Jul 2026", Alerts: activeAlertsCount, Incidents: openIncidentsCount },
-    ];
-
-    return { hourlyData: hData, dailyData: dData, monthlyData: mData };
-  }, [activeAlertsCount, openIncidentsCount]);
+  const hourlyData = stats?.trend_data?.hourlyData || [];
+  const dailyData = stats?.trend_data?.dailyData || [];
+  const monthlyData = stats?.trend_data?.monthlyData || [];
 
   if (isInitialLoading) return <Loading label="Loading dashboard from database..." />;
 

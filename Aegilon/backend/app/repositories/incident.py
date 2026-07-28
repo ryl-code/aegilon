@@ -3,7 +3,7 @@ from app.models.incident import Incident
 from app.models.host import Host
 from app.models.rule import Rule
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func, desc
+from sqlalchemy import select, and_, func, desc, text
 from datetime import datetime
 from uuid import UUID
 from typing import List, Optional, Dict, Any
@@ -126,6 +126,80 @@ class IncidentRepository(BaseRepository[Incident]):
         total_hosts = (await db.execute(hosts_count_stmt)).scalar() or 0
         active_alerts = (await db.execute(alerts_count_stmt)).scalar() or 0
 
+        from datetime import timedelta
+        now = datetime.now()
+        
+        # Generate strict time buckets
+        hourly_buckets = [(now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=i)).strftime('%H:00') for i in range(23, -1, -1)]
+        daily_buckets = [(now - timedelta(days=i)).strftime('%d %b') for i in range(6, -1, -1)]
+        monthly_buckets = []
+        for i in range(2, -1, -1):
+            m = now.month - i
+            y = now.year
+            if m <= 0:
+                m += 12
+                y -= 1
+            monthly_buckets.append(datetime(y, m, 1).strftime('%b %Y'))
+
+        # Trend Data - Hourly (Last 24h)
+        hourly_incidents_stmt = text("""
+            SELECT to_char(date_trunc('hour', created_at), 'HH24:00') as name, COUNT(id) as cnt
+            FROM incidents WHERE created_at >= NOW() - INTERVAL '24 hours'
+            GROUP BY date_trunc('hour', created_at)
+        """)
+        hourly_alerts_stmt = text("""
+            SELECT to_char(date_trunc('hour', created_at), 'HH24:00') as name, COUNT(id) as cnt
+            FROM alerts WHERE created_at >= NOW() - INTERVAL '24 hours'
+            GROUP BY date_trunc('hour', created_at)
+        """)
+        
+        # Trend Data - Daily (Last 7d)
+        daily_incidents_stmt = text("""
+            SELECT to_char(date_trunc('day', created_at), 'DD Mon') as name, COUNT(id) as cnt
+            FROM incidents WHERE created_at >= NOW() - INTERVAL '7 days'
+            GROUP BY date_trunc('day', created_at)
+        """)
+        daily_alerts_stmt = text("""
+            SELECT to_char(date_trunc('day', created_at), 'DD Mon') as name, COUNT(id) as cnt
+            FROM alerts WHERE created_at >= NOW() - INTERVAL '7 days'
+            GROUP BY date_trunc('day', created_at)
+        """)
+        
+        # Trend Data - Monthly (Last 3m)
+        monthly_incidents_stmt = text("""
+            SELECT to_char(date_trunc('month', created_at), 'Mon YYYY') as name, COUNT(id) as cnt
+            FROM incidents WHERE created_at >= NOW() - INTERVAL '3 months'
+            GROUP BY date_trunc('month', created_at)
+        """)
+        monthly_alerts_stmt = text("""
+            SELECT to_char(date_trunc('month', created_at), 'Mon YYYY') as name, COUNT(id) as cnt
+            FROM alerts WHERE created_at >= NOW() - INTERVAL '3 months'
+            GROUP BY date_trunc('month', created_at)
+        """)
+
+        def build_filled_trend(inc_rows, alt_rows, buckets):
+            trend_dict = {b: {"name": b, "Incidents": 0, "Alerts": 0} for b in buckets}
+            for row in inc_rows:
+                if row[0] in trend_dict:
+                    trend_dict[row[0]]["Incidents"] += row[1]
+            for row in alt_rows:
+                if row[0] in trend_dict:
+                    trend_dict[row[0]]["Alerts"] += row[1]
+            return list(trend_dict.values())
+
+        h_inc = (await db.execute(hourly_incidents_stmt)).all()
+        h_alt = (await db.execute(hourly_alerts_stmt)).all()
+        d_inc = (await db.execute(daily_incidents_stmt)).all()
+        d_alt = (await db.execute(daily_alerts_stmt)).all()
+        m_inc = (await db.execute(monthly_incidents_stmt)).all()
+        m_alt = (await db.execute(monthly_alerts_stmt)).all()
+
+        trend_data = {
+            "hourlyData": build_filled_trend(h_inc, h_alt, hourly_buckets),
+            "dailyData": build_filled_trend(d_inc, d_alt, daily_buckets),
+            "monthlyData": build_filled_trend(m_inc, m_alt, monthly_buckets)
+        }
+
         return {
             "total_incidents": total,
             "open_incidents": open_inc,
@@ -137,7 +211,8 @@ class IncidentRepository(BaseRepository[Incident]):
             "top_affected_hosts": top_hosts,
             "most_triggered_rules": top_rules,
             "total_hosts": total_hosts,
-            "active_alerts": active_alerts
+            "active_alerts": active_alerts,
+            "trend_data": trend_data
         }
 
 incident_repo = IncidentRepository()

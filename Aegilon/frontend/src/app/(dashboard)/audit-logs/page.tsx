@@ -15,7 +15,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { formatDateTime } from "@/utils/format";
 import type { AuditLog } from "@/types";
 
-const LIMIT = 25;
+const LIMIT = 5;
 
 export default function AuditLogsPage() {
   const [skip, setSkip] = useState(0);
@@ -73,7 +73,8 @@ export default function AuditLogsPage() {
           <Pagination
             skip={skip}
             limit={LIMIT}
-            count={data?.length ?? 0}
+            count={filtered.length}
+            hasNext={data?.length === LIMIT}
             onPrev={() => setSkip((s) => Math.max(0, s - LIMIT))}
             onNext={() => setSkip((s) => s + LIMIT)}
           />

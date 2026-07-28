@@ -103,6 +103,9 @@ export interface IncidentStats {
   category_counts: Record<string, number>;
   top_affected_hosts: Array<Record<string, unknown>>;
   most_triggered_rules: Array<Record<string, unknown>>;
+  total_hosts?: number;
+  active_alerts?: number;
+  trend_data?: any;
 }
 
 export interface ResponseAction {
