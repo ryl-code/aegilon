@@ -4,9 +4,34 @@ import { useState } from "react";
 import { LogOut, Menu, Search } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 
+import { useRouter } from "next/navigation";
+
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      
+      // Page mappings based on exhaustive keywords
+      if (q.includes("alert") || q.includes("stream") || q.includes("event") || q.includes("wazuh")) router.push("/alerts");
+      else if (q.includes("incident") || q.includes("case") || q.includes("investigat") || q.includes("ticket") || q.startsWith("inc-")) router.push("/incidents");
+      else if (q.includes("host") || q.includes("computer") || q.includes("pc") || q.includes("laptop") || q.includes("server") || q.includes("endpoint") || q.includes("agent") || q.includes("machine") || q.match(/^[0-9\.]+$/)) router.push("/hosts");
+      else if (q.includes("rule") || q.includes("threat") || q.includes("detect") || q.includes("signature") || q.includes("yara") || q.includes("sigma")) router.push("/rules");
+      else if (q.includes("playbook") || q.includes("automation") || q.includes("soar") || q.includes("script") || q.includes("workflow")) router.push("/playbooks");
+      else if (q.includes("audit") || q.includes("log") || q.includes("activity") || q.includes("history")) router.push("/audit-logs");
+      else if (q.includes("response") || q.includes("action") || q.includes("mitigat") || q.includes("block") || q.includes("isolate") || q.includes("remediat")) router.push("/responses");
+      else if (q.includes("iso") || q.includes("standard") || q.includes("compliance") || q.includes("sca") || q.includes("cis") || q.includes("posture")) router.push("/iso-standards");
+      else if (q.includes("setting") || q.includes("config") || q.includes("preference") || q.includes("profile") || q.includes("user") || q.includes("telegram")) router.push("/settings");
+      else if (q.includes("dash") || q.includes("home")) router.push("/");
+      else router.push("/alerts"); // fallback
+      
+      setSearchQuery("");
+    }
+  };
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-4 sm:px-8 shadow-xs">
@@ -25,7 +50,10 @@ export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           <input
             suppressHydrationWarning
             type="text"
-            placeholder="Search threats, hosts, incidents or rules..."
+            placeholder="Search threats, hosts, incidents or rules... (Press Enter)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
             className="w-full rounded-full bg-surface-secondary border border-border/80 pl-10 pr-4 py-2 text-xs text-text placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
           />
         </div>

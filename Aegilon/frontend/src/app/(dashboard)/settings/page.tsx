@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Settings, User, Monitor, Server, ShieldCheck, LogOut } from "lucide-react";
 import { getHealth } from "@/services/health";
 import { useAuth } from "@/providers/AuthProvider";
-import { Card, CardHeader } from "@/components/ui/Card";
+import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Loading } from "@/components/ui/Loading";
