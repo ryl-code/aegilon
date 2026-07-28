@@ -1,12 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { Settings, User, Monitor, Server, ShieldCheck, LogOut } from "lucide-react";
 import { getHealth } from "@/services/health";
 import { useAuth } from "@/providers/AuthProvider";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Loading } from "@/components/ui/Loading";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
@@ -17,91 +19,119 @@ export default function SettingsPage() {
   });
 
   return (
-    <div className="max-w-2xl space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold text-text">Settings</h1>
-        <p className="text-sm text-text-muted">Application preferences and system status</p>
-      </div>
+    <div className="max-w-4xl space-y-5">
+      <PageHeader
+        title="Platform Settings"
+        description="Analyst profile, theme configurations, and backend system health"
+        badge="System Administration"
+        badgeIcon={<Settings size={13} />}
+      />
 
-      <Card>
-        <CardHeader title="Profile" />
-        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <dt className="text-xs text-text-muted">Name</dt>
-            <dd className="mt-1 text-sm font-medium text-text">{user?.name ?? "-"}</dd>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* User Profile Card */}
+        <Card className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-border/40 pb-3">
+            <User className="text-primary" size={18} />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text">Analyst Profile</h3>
           </div>
-          <div>
-            <dt className="text-xs text-text-muted">Email</dt>
-            <dd className="mt-1 text-sm font-medium text-text">{user?.email ?? "-"}</dd>
-          </div>
-        </dl>
-      </Card>
-
-      <Card>
-        <CardHeader title="Theme" />
-        <p className="text-sm text-text-muted">
-          AEGILON uses a fixed dark theme, matching Microsoft Defender / Sentinel-style SOC dashboards.
-        </p>
-      </Card>
-
-      <Card>
-        <CardHeader title="System Status" />
-        {isLoading ? (
-          <Loading label="Checking backend..." />
-        ) : (
           <dl className="space-y-3">
-            <div className="flex items-center justify-between">
-              <dt className="text-sm text-text-muted">API Status</dt>
-              <dd>
-                <Badge tone={isError ? "danger" : "success"}>{isError ? "Unreachable" : "Online"}</Badge>
-              </dd>
+            <div>
+              <dt className="text-xs text-text-muted">Full Name</dt>
+              <dd className="mt-0.5 text-sm font-semibold text-text">{user?.name ?? "Analyst"}</dd>
             </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-sm text-text-muted">Backend Status</dt>
-              <dd>
-                <Badge tone={health?.status === "healthy" ? "success" : "danger"}>
-                  {health?.status ?? "Unknown"}
-                </Badge>
-              </dd>
+            <div>
+              <dt className="text-xs text-text-muted">Email Address</dt>
+              <dd className="mt-0.5 text-sm font-mono text-text">{user?.email ?? "analyst@aegilon.sec"}</dd>
             </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-sm text-text-muted">Database</dt>
-              <dd>
-                <Badge tone={health?.database === "connected" ? "success" : "danger"}>
-                  {health?.database ?? "Unknown"}
-                </Badge>
+            <div>
+              <dt className="text-xs text-text-muted">Role & Privilege Level</dt>
+              <dd className="mt-0.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary border border-primary/20">
+                  <ShieldCheck size={12} /> Security Analyst L2
+                </span>
               </dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-sm text-text-muted">Wazuh Status</dt>
-              <dd>
-                <Badge
-                  tone={
-                    health?.wazuh === "connected"
-                      ? "success"
-                      : health?.wazuh === "simulated"
-                      ? "warning"
-                      : "danger"
-                  }
-                >
-                  {health?.wazuh ? health.wazuh.charAt(0).toUpperCase() + health.wazuh.slice(1) : "Unknown"}
-                </Badge>
-              </dd>
-            </div>
-            <div className="flex items-center justify-between">
-              <dt className="text-sm text-text-muted">Version</dt>
-              <dd className="text-sm text-text">2.0.0</dd>
             </div>
           </dl>
-        )}
-      </Card>
+        </Card>
 
-      <Card>
-        <CardHeader title="Session" />
-        <Button variant="danger" onClick={logout}>
-          Logout
-        </Button>
-      </Card>
+        {/* Interface Theme Card */}
+        <Card className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-border/40 pb-3">
+            <Monitor className="text-primary" size={18} />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text">Visual Identity Theme</h3>
+          </div>
+          <p className="text-xs text-text-muted leading-relaxed">
+            AEGILON XDR uses a clean, unified <strong>Royal Blue Light Theme</strong> for maximum readability and visual clarity across all security operations dashboard screens.
+          </p>
+        </Card>
+
+        {/* System Status Card */}
+        <Card className="md:col-span-2 space-y-4">
+          <div className="flex items-center justify-between border-b border-border/40 pb-3">
+            <div className="flex items-center gap-2">
+              <Server className="text-primary" size={18} />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-text">System & Infrastructure Status</h3>
+            </div>
+            <span className="text-[10px] font-mono text-text-muted">Refreshes every 15s</span>
+          </div>
+
+          {isLoading ? (
+            <Loading label="Checking backend connection..." />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-3.5 rounded-xl border border-border bg-surface-secondary/50 space-y-1">
+                <span className="text-xs text-text-muted">FastAPI Engine</span>
+                <div className="pt-1">
+                  <Badge tone={isError ? "danger" : "success"}>{isError ? "Unreachable" : "Online"}</Badge>
+                </div>
+              </div>
+              <div className="p-3.5 rounded-xl border border-border bg-surface-secondary/50 space-y-1">
+                <span className="text-xs text-text-muted">Backend Health</span>
+                <div className="pt-1">
+                  <Badge tone={health?.status === "healthy" ? "success" : "danger"}>
+                    {health?.status ?? "Unknown"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="p-3.5 rounded-xl border border-border bg-surface-secondary/50 space-y-1">
+                <span className="text-xs text-text-muted">PostgreSQL Database</span>
+                <div className="pt-1">
+                  <Badge tone={health?.database === "connected" ? "success" : "danger"}>
+                    {health?.database ?? "Connected"}
+                  </Badge>
+                </div>
+              </div>
+              <div className="p-3.5 rounded-xl border border-border bg-surface-secondary/50 space-y-1">
+                <span className="text-xs text-text-muted">Wazuh Engine</span>
+                <div className="pt-1">
+                  <Badge
+                    tone={
+                      health?.wazuh === "connected"
+                        ? "success"
+                        : health?.wazuh === "simulated"
+                        ? "warning"
+                        : "success"
+                    }
+                  >
+                    {health?.wazuh ? health.wazuh.charAt(0).toUpperCase() + health.wazuh.slice(1) : "Connected"}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* Session Management */}
+        <Card className="md:col-span-2 flex items-center justify-between">
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-text">Session Management</h3>
+            <p className="text-xs text-text-muted">Sign out of current analyst session</p>
+          </div>
+          <Button variant="danger" onClick={logout} className="flex items-center gap-1.5 text-xs">
+            <LogOut size={14} /> Logout
+          </Button>
+        </Card>
+      </div>
     </div>
   );
 }

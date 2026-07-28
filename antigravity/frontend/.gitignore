@@ -6,4 +6,5 @@ build/
 .env.local
 !.env.example
 *.log
+*.tsbuildinfo
 .DS_Store

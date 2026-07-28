@@ -14,10 +14,12 @@ router = APIRouter(prefix="/alerts", tags=["Alerts"])
 async def get_alerts(
     skip: int = 0,
     limit: int = 100,
+    severity: str = None,
+    minutes: int = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    return await alert_service.get_alerts(db, skip=skip, limit=limit)
+    return await alert_service.get_alerts(db, skip=skip, limit=limit, severity=severity, minutes=minutes)
 
 @router.get("/unprocessed", response_model=List[AlertResponse])
 async def get_unprocessed(

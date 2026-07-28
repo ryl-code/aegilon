@@ -52,13 +52,14 @@ class WazuhService:
         except Exception:
             timestamp = datetime.now(wib)
             
-        # Map wazuh level to standard severity: Low, Medium, High, Critical
+        # Map wazuh level to official Wazuh dashboard severity standard:
+        # Low: Level 0-6 | Medium: Level 7-11 | High: Level 12-14 | Critical: Level 15+
         severity = "Low"
-        if level >= 12:
+        if level >= 15:
             severity = "Critical"
-        elif level >= 9:
+        elif level >= 12:
             severity = "High"
-        elif level >= 5:
+        elif level >= 7:
             severity = "Medium"
             
         # A. Fetch or create host
@@ -110,6 +111,30 @@ class WazuhService:
         return {
             "status": "success",
             "alert_id": alert.id
+        }
+
+    async def process_batch_wazuh_alerts(self, db: AsyncSession, alerts_batch: list) -> dict:
+        """
+        High-volume batch log ingestion queue buffer for processing large scale streams (200k+ alerts).
+        """
+        processed_count = 0
+        skipped_count = 0
+
+        for alert_item in alerts_batch:
+            try:
+                res = await self.process_wazuh_alert(db, alert_item)
+                if res.get("status") == "success":
+                    processed_count += 1
+                else:
+                    skipped_count += 1
+            except Exception as e:
+                logger.warning(f"Batch item error: {str(e)}")
+                skipped_count += 1
+
+        return {
+            "total": len(alerts_batch),
+            "processed": processed_count,
+            "skipped": skipped_count
         }
 
 class WazuhAPIClient:

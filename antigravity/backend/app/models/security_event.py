@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 from sqlalchemy import String, DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.db.base import Base
+from app.database.database import Base
 
 if TYPE_CHECKING:
     from app.models.alert import Alert
@@ -22,7 +22,3 @@ class SecurityEvent(Base):
     
     # Store the raw payload/JSON string for potential forensic analysis or threat hunting
     raw_log: Mapped[str] = mapped_column(Text, nullable=False)
-
-    # One-to-One / One-to-Zero relationship to Alert
-    # An event may trigger exactly one alert (or none, if it's considered normal behaviour)
-    alert: Mapped["Alert"] = relationship(back_populates="security_event", uselist=False)

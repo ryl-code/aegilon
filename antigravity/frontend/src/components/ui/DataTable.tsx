@@ -29,9 +29,9 @@ export function DataTable<T>({
     <div className="table-scroll">
       <table className="w-full min-w-[720px] border-collapse text-sm">
         <thead>
-          <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-text-muted">
+          <tr className="border-b border-border bg-surface-secondary/60 text-left text-[11px] uppercase tracking-widest text-text-muted">
             {columns.map((col) => (
-              <th key={col.header} className="pb-3 pr-4 font-medium">
+              <th key={col.header} className="px-3 py-3 font-semibold first:rounded-tl-lg last:rounded-tr-lg">
                 {col.header}
               </th>
             ))}
@@ -44,12 +44,12 @@ export function DataTable<T>({
               onClick={() => onRowClick?.(row)}
               className={
                 onRowClick
-                  ? "cursor-pointer border-b border-border/60 hover:bg-background/80"
-                  : "border-b border-border/60"
+                  ? "cursor-pointer border-b border-border/40 hover:bg-primary-light/60 transition-colors duration-100"
+                  : "border-b border-border/40"
               }
             >
               {columns.map((col) => (
-                <td key={col.header} className={`py-3 pr-4 text-text ${col.className ?? ""}`}>
+                <td key={col.header} className={`px-3 py-3 text-text text-sm ${col.className ?? ""}`}>
                   {col.render(row)}
                 </td>
               ))}

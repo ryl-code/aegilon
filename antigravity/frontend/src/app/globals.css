@@ -3,34 +3,22 @@
 @tailwind utilities;
 
 @layer base {
-  :root, .dark {
-    --background: #060b13; /* Deep space navy/dark blue */
-    --surface: #0b1526;    /* Dark card background matching the top image */
-    --border: #11223f;     /* Subtle cyan/blue card border */
-    --primary: #00d8f6;    /* Glowing cyan primary */
-    --primary-hover: #00b4ce;
+  :root {
+    --background: #f0f4f9;      /* Soft light grey-blue canvas background */
+    --surface: #ffffff;         /* Pure white card surface */
+    --surface-secondary: #f4f8fe; /* Soft light blue container fill */
+    --surface-hover: #e8f1fd;
+    --border: #e1e8f5;          /* Crisp soft border */
+    --primary: #1a64ea;         /* Royal Electric Blue */
+    --primary-hover: #1351c4;
+    --primary-light: #e8f0fe;
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
     --critical: #dc2626;
-    --text: #f1f5f9;
-    --text-muted: #94a3b8;
-    --card-shadow: 0 4px 20px -2px rgba(0, 216, 246, 0.08), 0 2px 8px -1px rgba(0, 0, 0, 0.3);
-  }
-
-  .light {
-    --background: #f3f6fa; /* Soft blue-grey background matching the bottom image */
-    --surface: #ffffff;    /* Clean white card surface */
-    --border: #d8e2ee;     /* Soft blue border */
-    --primary: #0284c7;    /* Rich blue primary */
-    --primary-hover: #0369a1;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --critical: #dc2626;
-    --text: #0f172a;       /* Dark navy text */
-    --text-muted: #64748b; /* Slate-500 muted text */
-    --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.01);
+    --text: #1e293b;            /* Dark slate heading text */
+    --text-muted: #64748b;      /* Slate-500 muted text */
+    --card-shadow: 0 10px 30px -5px rgba(26, 100, 234, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
   }
 
   * {
@@ -39,33 +27,42 @@
 
   body {
     @apply bg-background text-text transition-colors duration-200;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 }
 
-/* Scrollbars styling depending on theme */
-.dark ::-webkit-scrollbar-track, :root ::-webkit-scrollbar-track {
-  background: var(--background);
-}
-.dark ::-webkit-scrollbar-thumb, :root ::-webkit-scrollbar-thumb {
-  background: #11223f;
-  border: 2px solid var(--background);
-  border-radius: 4px;
-}
-.dark ::-webkit-scrollbar-thumb:hover, :root ::-webkit-scrollbar-thumb:hover {
-  background: #172d54;
+/* Custom Folder Card Tab Styling */
+.folder-tab {
+  position: relative;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1.5rem;
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
 }
 
-.light ::-webkit-scrollbar-track {
-  background: var(--background);
+.folder-tab-active {
+  background: #1a64ea;
+  color: #ffffff;
+  box-shadow: 0 12px 24px -4px rgba(26, 100, 234, 0.35);
 }
-.light ::-webkit-scrollbar-thumb {
+
+.folder-tab-inactive {
+  background: #eef4fc;
+  color: #1e293b;
+  border: 1px solid #e1e8f5;
+}
+
+/* Scrollbars styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border: 2px solid var(--background);
-  border-radius: 4px;
-}
-.light ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  border-radius: 9999px;
 }
 
 .table-scroll {

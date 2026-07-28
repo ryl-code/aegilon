@@ -2,19 +2,35 @@
 
 import { PolarAngleAxis, PolarGrid, Radar, RadarChart, ResponsiveContainer } from "recharts";
 
-const data = [
-  { subject: "Credential Access", A: 90, fullMark: 100 },
-  { subject: "Execution", A: 75, fullMark: 100 },
-  { subject: "Persistence", A: 60, fullMark: 100 },
-  { subject: "Discovery", A: 50, fullMark: 100 },
-  { subject: "Exfiltration", A: 45, fullMark: 100 },
-  { subject: "Lateral Movement", A: 30, fullMark: 100 },
+interface TacticsRadarProps {
+  categoryCounts?: Record<string, number>;
+}
+
+const DEFAULT_CATEGORIES = [
+  "Credential Access",
+  "Execution",
+  "Persistence",
+  "Discovery",
+  "Exfiltration",
+  "Lateral Movement",
 ];
 
-export function TacticsRadar() {
+export function TacticsRadar({ categoryCounts = {} }: TacticsRadarProps) {
+  const chartData = DEFAULT_CATEGORIES.map((cat) => {
+    const rawVal = categoryCounts[cat] || 0;
+    // Map count to scaled value
+    const scaledVal = rawVal > 0 ? Math.min(rawVal * 20 + 30, 100) : 15;
+    return {
+      subject: cat,
+      A: scaledVal,
+      count: rawVal,
+      fullMark: 100,
+    };
+  });
+
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+      <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
         <PolarGrid stroke="var(--border)" />
         <PolarAngleAxis 
           dataKey="subject" 

@@ -2,12 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from contextlib import asynccontextmanager
-from app.api import health, auth, hosts, alerts, analysis, incidents, responses, wazuh, audit_logs, notifications
+from app.api import health, auth, hosts, alerts, analysis, incidents, responses, wazuh, audit_logs, notifications, rules, playbooks
 from app.database.database import engine, Base, AsyncSessionLocal
 from app.core.config import settings
 from app.models.user import User
 from app.core.security import get_password_hash
 from app.services.wazuh import start_wazuh_sync
+from app.detection.engine import start_detection_engine
 import asyncio
 
 @asynccontextmanager
@@ -32,15 +33,17 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"Admin seeding check skipped: {str(e)}")
             
-    # 2. Start background Wazuh Sync task
+    # 2. Start background Wazuh Sync & Detection Engine tasks
     sync_task = asyncio.create_task(start_wazuh_sync())
+    detection_task = asyncio.create_task(start_detection_engine())
     
     yield
     
     # 3. Cleanup background tasks on shutdown
     sync_task.cancel()
+    detection_task.cancel()
     try:
-        await asyncio.gather(sync_task, return_exceptions=True)
+        await asyncio.gather(sync_task, detection_task, return_exceptions=True)
     except Exception:
         pass
 
@@ -78,6 +81,10 @@ app.include_router(wazuh.router, prefix="/api")
 app.include_router(audit_logs.router)
 app.include_router(notifications.router)
 app.include_router(notifications.router, prefix="/api")
+app.include_router(rules.router)
+app.include_router(rules.router, prefix="/api")
+app.include_router(playbooks.router)
+app.include_router(playbooks.router, prefix="/api")
 
 @app.get("/")
 def read_root():

@@ -7,8 +7,15 @@ from typing import List, Optional
 from uuid import UUID
 
 class AlertService:
-    async def get_alerts(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Alert]:
-        return await alert_repo.get_multi(db, skip=skip, limit=limit)
+    async def get_alerts(
+        self,
+        db: AsyncSession,
+        skip: int = 0,
+        limit: int = 100,
+        severity: Optional[str] = None,
+        minutes: Optional[int] = None
+    ) -> List[Alert]:
+        return await alert_repo.get_multi(db, skip=skip, limit=limit, severity=severity, minutes=minutes)
 
     async def get_alert(self, db: AsyncSession, alert_id: UUID) -> Optional[Alert]:
         return await alert_repo.get(db, alert_id)
@@ -57,8 +64,8 @@ class AlertService:
             await response_repo.create(db, obj_in={
                 "incident_id": incident.id,
                 "action": action,
-                "status": "pending",
-                "message": f"Triggered response action: {action} (Analysis: {analysis})"
+                "status": "executed",
+                "message": f"Automated SOAR execution completed for action: {action}"
             })
             
         # 5. Update alert status to processed

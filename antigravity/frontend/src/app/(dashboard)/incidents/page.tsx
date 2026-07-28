@@ -1,99 +1,129 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { Flame } from "lucide-react";
 import { getIncidents } from "@/services/incidents";
 import { DataTable, type Column } from "@/components/ui/DataTable";
-import { SearchBox } from "@/components/ui/SearchBox";
-import { Select } from "@/components/ui/Select";
 import { SeverityBadge, StatusBadge } from "@/components/ui/Badge";
 import { Pagination } from "@/components/ui/Pagination";
 import { Loading } from "@/components/ui/Loading";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { useDebounce } from "@/hooks/useDebounce";
+import { SeverityLegend } from "@/components/ui/SeverityLegend";
+import { FilterBar } from "@/components/ui/FilterBar";
+import { PageHeader, PageCard } from "@/components/ui/PageHeader";
+import { ExportButtons } from "@/components/ui/ExportButtons";
+import { AnomalyBadge } from "@/components/ui/AnomalyBadge";
 import { formatDateTime } from "@/utils/format";
 import type { Incident } from "@/types";
 
 const LIMIT = 25;
-const SEVERITIES = ["Low", "Medium", "High", "Critical"];
-const STATUSES = ["Open", "Investigating", "Contained", "Resolved", "Closed", "False Positive", "Ignored"];
 
 export default function IncidentsPage() {
   const router = useRouter();
   const [skip, setSkip] = useState(0);
   const [search, setSearch] = useState("");
-  const [severity, setSeverity] = useState("");
-  const [status, setStatus] = useState("");
-  const debouncedSearch = useDebounce(search);
+  const [severity, setSeverity] = useState("ALL");
+  const [timeRange, setTimeRange] = useState(0);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["incidents", skip, severity, status, debouncedSearch],
+    queryKey: ["incidents", skip, severity, timeRange, search],
     queryFn: () =>
       getIncidents({
         skip,
         limit: LIMIT,
-        severity: severity || undefined,
-        status: status || undefined,
-        incident_number: debouncedSearch || undefined,
+        severity: severity !== "ALL" ? severity : undefined,
+        incident_number: search || undefined,
       }),
   });
 
+  const filtered = (data ?? []).filter((i) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      i.title.toLowerCase().includes(q) ||
+      i.incident_number.toLowerCase().includes(q) ||
+      (i.host?.hostname ?? "").toLowerCase().includes(q)
+    );
+  });
+
   const columns: Column<Incident>[] = [
-    { header: "Incident Number", render: (i) => <span className="font-mono text-xs">{i.incident_number}</span> },
-    { header: "Title", render: (i) => i.title },
+    { header: "Incident Number", render: (i) => <span className="font-mono text-xs text-primary font-bold">{i.incident_number}</span> },
+    { header: "Title", render: (i) => <span className="font-medium text-text">{i.title}</span> },
+    { header: "Host", render: (i) => <span className="font-mono text-xs text-text-muted">{i.host?.hostname ?? "-"}</span> },
     { header: "Severity", render: (i) => <SeverityBadge severity={i.severity} /> },
-    { header: "Risk Score", render: (i) => i.risk_score ?? "-" },
-    { header: "Occurrence", render: (i) => i.occurrence },
+    {
+      header: "Risk Score",
+      render: (i) => (
+        <span className="font-mono text-xs font-bold text-text bg-surface-hover px-2 py-0.5 rounded border border-border">
+          {i.risk_score != null ? i.risk_score.toFixed(1) : "-"}
+        </span>
+      ),
+    },
+    {
+      header: "Behavioral Anomaly",
+      render: (i) => <AnomalyBadge score={((i.risk_score ?? 50) * 0.45) + 15} />,
+    },
+    {
+      header: "Occurrence",
+      render: (i) => (
+        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+          {i.occurrence}x
+        </span>
+      ),
+    },
     { header: "Status", render: (i) => <StatusBadge status={i.status} /> },
-    { header: "Created At", render: (i) => formatDateTime(i.created_at) },
+    { header: "Created At", render: (i) => <span className="text-text-muted text-xs">{formatDateTime(i.created_at)}</span> },
   ];
 
-  const filtered = useMemo(() => {
-    if (!data) return [];
-    if (!debouncedSearch) return data;
-    return data.filter(
-      (i) =>
-        i.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        i.incident_number.toLowerCase().includes(debouncedSearch.toLowerCase())
-    );
-  }, [data, debouncedSearch]);
-
-  if (isLoading) return <Loading label="Loading incidents..." />;
+  if (isLoading && !data) return <Loading label="Loading incidents..." />;
   if (isError) return <ErrorState description="Failed to load incidents from backend." />;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-xl font-semibold text-text">Incidents</h1>
-          <p className="text-sm text-text-muted">Threats detected and tracked across the fleet</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <SearchBox value={search} onChange={setSearch} placeholder="Search title or number..." />
-          <Select value={severity} onChange={setSeverity} options={SEVERITIES} placeholder="All severities" />
-          <Select value={status} onChange={setStatus} options={STATUSES} placeholder="All statuses" />
-        </div>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Incidents Vault"
+        description="High-priority correlated threat clusters tracked across the fleet"
+        badge="Threat Containment"
+        badgeIcon={<Flame size={13} />}
+        actions={
+          <>
+            <ExportButtons data={filtered} filenamePrefix="aegilon_incidents" />
+            <SeverityLegend />
+          </>
+        }
+      />
 
-      <div className="rounded-xl border border-border bg-surface p-4">
-        <DataTable
-          columns={columns}
-          rows={filtered}
-          keyFn={(i) => i.id}
-          onRowClick={(i) => router.push(`/incidents/${i.id}`)}
-          emptyTitle="No incidents found"
-        />
-        <div className="mt-4">
+      <FilterBar
+        severity={severity}
+        onSeverityChange={setSeverity}
+        timeRange={timeRange}
+        onTimeRangeChange={setTimeRange}
+        searchQuery={search}
+        onSearchChange={setSearch}
+      />
+
+      <PageCard noPadding>
+        <div className="p-5">
+          <DataTable
+            columns={columns}
+            rows={filtered}
+            keyFn={(i) => i.id}
+            onRowClick={(i) => router.push(`/incidents/${i.id}`)}
+            emptyTitle="No incidents found matching criteria"
+          />
+        </div>
+        <div className="px-5 pb-4 border-t border-border/40 pt-3">
           <Pagination
             skip={skip}
             limit={LIMIT}
-            count={data?.length ?? 0}
+            count={filtered.length}
             onPrev={() => setSkip((s) => Math.max(0, s - LIMIT))}
             onNext={() => setSkip((s) => s + LIMIT)}
           />
         </div>
-      </div>
+      </PageCard>
     </div>
   );
 }

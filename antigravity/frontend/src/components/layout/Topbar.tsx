@@ -1,71 +1,63 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Bell, LogOut, Menu, User as UserIcon, Sun, Moon } from "lucide-react";
+import { useState } from "react";
+import { LogOut, Menu, Search } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 
 export function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-
-  useEffect(() => {
-    const currentTheme = document.documentElement.classList.contains("light") ? "light" : "dark";
-    setTheme(currentTheme);
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    document.documentElement.className = nextTheme;
-    localStorage.setItem("theme", nextTheme);
-  };
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
-      <div className="flex items-center gap-3">
+    <header className="flex h-16 items-center justify-between border-b border-border bg-surface px-4 sm:px-8 shadow-xs">
+      {/* Left side: Mobile menu & Search drive/threat bar */}
+      <div className="flex items-center gap-4 flex-1 max-w-xl">
         <button
           onClick={onMenuClick}
           className="text-text-muted hover:text-text lg:hidden"
         >
           <Menu size={20} />
         </button>
-        <p className="text-sm font-medium text-text-muted hidden sm:block">
-          Low-Overhead Extended Detection &amp; Response
-        </p>
+
+        {/* Pill Search Input matching Screenshot */}
+        <div className="relative w-full max-w-md hidden sm:block">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted h-4 w-4" />
+          <input
+            suppressHydrationWarning
+            type="text"
+            placeholder="Search threats, hosts, incidents or rules..."
+            className="w-full rounded-full bg-surface-secondary border border-border/80 pl-10 pr-4 py-2 text-xs text-text placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+          />
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <button
-          onClick={toggleTheme}
-          className="text-text-muted hover:text-text p-1.5 rounded-lg hover:bg-background/80"
-          title="Toggle Theme"
-        >
-          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-        <button className="text-text-muted hover:text-text">
-          <Bell size={18} />
-        </button>
+      {/* Right side: Action icons and user profile avatar */}
+      <div className="flex items-center gap-3">
+
+
+        {/* User Profile Avatar Pill matching Screenshot */}
         <div className="relative">
           <button
+            suppressHydrationWarning
             onClick={() => setMenuOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-text hover:bg-background/80"
+            className="flex items-center gap-2.5 rounded-full px-2.5 py-1 text-xs font-semibold text-text hover:bg-surface-hover transition-colors"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/20 text-primary">
-              <UserIcon size={15} />
+            <span className="hidden sm:inline text-text-muted">{user?.name ?? "Analyst"}</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white font-bold text-xs shadow-sm">
+              {user?.name ? user.name[0].toUpperCase() : "J"}
             </div>
-            <span className="hidden sm:inline">{user?.name ?? "Analyst"}</span>
           </button>
+
           {menuOpen && (
-            <div className="absolute right-0 top-11 w-48 rounded-lg border border-border bg-surface p-1 shadow-xl">
-              <div className="px-3 py-2 text-xs text-text-muted truncate">
-                {user?.email}
+            <div className="absolute right-0 top-12 w-48 rounded-xl border border-border bg-surface p-1.5 shadow-xl z-50">
+              <div className="px-3 py-2 text-xs text-text-muted truncate border-b border-border mb-1">
+                {user?.email ?? "analyst@aegilon.sec"}
               </div>
               <button
                 onClick={logout}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-danger hover:bg-danger/10"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-danger hover:bg-danger/10 transition-colors"
               >
-                <LogOut size={15} /> Logout
+                <LogOut size={14} /> Logout
               </button>
             </div>
           )}
