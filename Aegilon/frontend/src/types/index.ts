@@ -106,6 +106,9 @@ export interface IncidentStats {
   total_hosts?: number;
   active_alerts?: number;
   trend_data?: any;
+  database_bytes?: number;
+  database_size_mb?: number;
+  sla_compliance_pct?: number;
 }
 
 export interface ResponseAction {

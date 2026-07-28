@@ -61,7 +61,7 @@ export default function SettingsPage() {
             <h3 className="text-xs font-bold uppercase tracking-wider text-text">Visual Identity & Logo</h3>
           </div>
           <div className="relative overflow-hidden rounded-xl bg-black border border-border p-3 flex items-center justify-center">
-            <img src="/logo.jpg" alt="Official AEGILON Logo" className="h-24 w-auto object-contain rounded" />
+            <img src="/logo.png" alt="Official AEGILON Logo" className="h-24 w-auto object-contain rounded" />
           </div>
           <p className="text-xs text-text-muted leading-relaxed">
             AEGILON XDR uses a high-contrast Cyberpunk Cyber Defense brand identity paired with a clean <strong>Royal Blue Light Theme</strong> for maximum SOC analyst readability.
