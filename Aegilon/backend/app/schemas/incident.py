@@ -86,3 +86,6 @@ class IncidentStats(BaseModel):
     total_hosts: int
     active_alerts: int
     trend_data: Optional[Dict[str, Any]] = None
+    database_bytes: Optional[int] = None
+    database_size_mb: Optional[float] = None
+    sla_compliance_pct: Optional[float] = None

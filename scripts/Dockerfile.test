@@ -1,0 +1,23 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements & install dependencies
+COPY scripts/requirements-test.txt /app/requirements-test.txt
+RUN pip install --no-cache-dir -r requirements-test.txt
+
+# Copy test scripts
+COPY scripts/ /app/scripts/
+
+# Default Environment Variables
+ENV BACKEND_URL=http://backend:8080
+ENV PYTHONUNBUFFERED=1
+
+# Command to execute the Aegilon XDR 4-Pillar test suite
+CMD ["python", "/app/scripts/test_xdr_features.py"]

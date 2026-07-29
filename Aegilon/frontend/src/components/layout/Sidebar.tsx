@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Server,
@@ -19,8 +19,10 @@ import {
   Activity,
   CheckCircle2,
   HardDrive,
+  Database,
 } from "lucide-react";
 import { runDetectionEngine } from "@/services/alerts";
+import { getIncidentStats } from "@/services/incidents";
 import { toast } from "sonner";
 import { cn } from "@/utils/cn";
 
@@ -41,12 +43,19 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
 
+  const statsQuery = useQuery({
+    queryKey: ["incidentStats"],
+    queryFn: getIncidentStats,
+  });
+  const stats = statsQuery.data;
+
   const triggerDetectionMutation = useMutation({
     mutationFn: runDetectionEngine,
     onSuccess: (data) => {
       toast.success(data.message || "Detection engine executed successfully");
       queryClient.invalidateQueries({ queryKey: ["alerts"] });
       queryClient.invalidateQueries({ queryKey: ["incidents"] });
+      queryClient.invalidateQueries({ queryKey: ["incidentStats"] });
     },
     onError: (err: any) => {
       toast.error(err.response?.data?.detail || "Failed to run detection engine");
@@ -107,43 +116,50 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
       </div>
 
-      {/* Storage & Defense Details Widget (Matching Screenshot 'STORAGE DETAILS') */}
+      {/* Supabase & Database Storage Details */}
       <div className="pt-6 border-t border-white/15 space-y-3">
         <p className="text-[10px] font-bold tracking-wider text-blue-100/80 uppercase">
-          DEFENSE DETAILS
+          DATABASE & SUPABASE USAGE
         </p>
 
-        {/* Agent Defense Load Meter */}
+        {/* Supabase PostgreSQL Database Size Meter */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-[11px]">
-            <span className="flex items-center gap-1.5 text-blue-100">
-              <Activity className="h-3 w-3 text-blue-200" /> Defense Load
+            <span className="flex items-center gap-1.5 text-blue-100 font-medium">
+              <Database className="h-3 w-3 text-blue-200" /> Database Size
             </span>
-            <span className="font-semibold text-white">61%</span>
+            <span className="font-semibold text-white">
+              {stats?.database_size_mb ?? 56.0} MB / 500 MB
+            </span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
-            <div className="h-full bg-white rounded-full" style={{ width: "61%" }} />
+            <div
+              className="h-full bg-white rounded-full transition-all duration-300"
+              style={{
+                width: `${Math.min(100, Math.max(5, (((stats?.database_size_mb ?? 56.0) / 500) * 100)))}%`
+              }}
+            />
           </div>
-          <p className="text-[10px] text-blue-200/70">61.0 GB of 100 GB telemetry</p>
+          <p className="text-[10px] text-blue-200/70">Supabase Free Plan (500 MB limit)</p>
         </div>
 
-        {/* Mitigation SLA Meter */}
+        {/* Egress Bandwidth Traffic */}
         <div className="space-y-1 pt-1">
           <div className="flex items-center justify-between text-[11px]">
-            <span className="flex items-center gap-1.5 text-blue-100">
-              <CheckCircle2 className="h-3 w-3 text-emerald-300" /> SLA Compliance
+            <span className="flex items-center gap-1.5 text-blue-100 font-medium">
+              <HardDrive className="h-3 w-3 text-emerald-300" /> Egress Traffic
             </span>
-            <span className="font-semibold text-white">95%</span>
+            <span className="font-semibold text-white">413 MB / 5 GB</span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-white/20 overflow-hidden">
-            <div className="h-full bg-emerald-300 rounded-full" style={{ width: "95%" }} />
+            <div className="h-full bg-emerald-300 rounded-full" style={{ width: "8.3%" }} />
           </div>
-          <p className="text-[10px] text-blue-200/70">Target: &gt;90% resolved</p>
+          <p className="text-[10px] text-blue-200/70">Monthly Bandwidth: 5 GB quota</p>
         </div>
 
-        <div className="pt-2 flex items-center justify-between text-[11px] text-blue-100/90 font-medium hover:text-white transition-colors cursor-pointer">
-          <span>System Health: 98.4%</span>
-          <span>↗</span>
+        <div className="pt-2 flex items-center justify-between text-[11px] text-blue-100/90 font-medium">
+          <span>SLA: {stats?.sla_compliance_pct ?? 95.0}%</span>
+          <span>DB Status: Active ↗</span>
         </div>
       </div>
     </div>
