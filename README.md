@@ -13,137 +13,209 @@
 
 ---
 
-## 📝 Deskripsi Proyek (Project Description)
+## 📝 Project Description
 
-### Apa Itu AEGILON?
-**AEGILON** adalah platform **Extended Detection and Response (XDR)** modern berbasis arsitektur *Low-Overhead* dan *Single Source of Truth*. Platform ini dirancang khusus untuk mengumpulkan telemetri dari host/endpoint Windows (menggunakan Wazuh & Osquery), mendeteksi ancaman siber secara otomatis melalui analisis perilaku (*behaviour-based*) dan algoritma *Machine Learning*, mengelola siklus hidup insiden (*incident lifecycle*) secara terstruktur, hingga melakukan tindakan respons otomatis (*SOAR*).
+### What is AEGILON?
+**AEGILON** is a modern **Extended Detection and Response (XDR)** platform engineered with a *Low-Overhead* and *Single Source of Truth* architecture. It is specifically designed to ingest telemetry from Windows endpoints (using Wazuh & Osquery), detect cyber threats automatically via behavior-based rules and Machine Learning algorithms, manage the incident lifecycle, and execute automated response actions (SOAR).
 
-### Masalah yang Diselesaikan
-1. **Resource Overhead Tinggi**: Platform SIEM/EDR tradisional membutuhkan konsumsi daya komputasi (CPU/RAM) yang besar. AEGILON dirancang sangat efisien (*low-overhead*) dengan arsitektur berkinerja tinggi.
-2. **Alert Fatigue & Duplikasi Insiden**: Tim SOC sering kewalahan menangani ribuan alert berulang. AEGILON menyelesaikan masalah ini melalui mekanisme **Smart Duplicate Prevention (`occurrence++`)**, di mana alert baru dengan pola ancaman yang sama pada host aktif dikonsolidasikan ke insiden yang sedang terbuka alih-alih membuat insiden duplikat.
-3. **Analisis Terpisah & Penanganan Lambat**: Mengintegrasikan alur ingest telemetri, deteksi ancaman, skoring risiko, perangkaian bukti (*evidence collection*), audit logging, hingga notifikasi respons otomatis dalam satu sistem terpadu.
+### Key Problems Solved
+1. **High Resource Overhead**: Traditional SIEM/EDR solutions consume heavy CPU and RAM. AEGILON is built for extreme efficiency using high-performance asynchronous frameworks.
+2. **Alert Fatigue & Duplicate Incidents**: SOC teams are overwhelmed by thousands of recurring alerts. AEGILON solves this with **Smart Duplicate Prevention (`occurrence++`)**, consolidating recurring alerts into open incidents rather than creating duplicate tickets.
+3. **Fragmented Security Stack**: Unifies telemetry ingestion, threat detection, risk scoring, digital evidence gathering, audit logging, and automated SOAR response into a single, cohesive platform.
 
-### Mengapa Memilih AEGILON?
-- ⚡ **Low-Overhead Architecture**: Memanfaatkan FastAPI & PostgreSQL (Supabase) asynchronous untuk efisiensi eksekusi tinggi.
-- 🎯 **Smart Deduplication & Evidence Management**: Menghilangkan *noise* alert dan mengelompokkan bukti-bukti serangan (*evidence*) secara otomatis.
-- 🤖 **End-to-End SOAR Integration**: Respon otomatis berbasis skenario dengan integrasi alur kerja n8n dan notifikasi instan ke Telegram analis.
-- 📊 **Dynamic Risk Scoring**: Penilaian tingkat risiko (*severity level*) secara otomatis berbasis dampak ancaman dan kritisitas aset.
-- 🕒 **Full WIB Timezone Normalization**: Semua pencatatan timestamp telemetri, alert, log audit, dan ID insiden disesuaikan secara presisi ke Waktu Indonesia Barat (`Asia/Jakarta`, WIB).
-
----
-
-## 📌 Daftar Isi (Table of Contents)
-
-- [🛡️ AEGILON: Low-Overhead Extended Detection \& Response (XDR) Platform](#️-aegilon-low-overhead-extended-detection--response-xdr-platform)
-  - [📝 Deskripsi Proyek (Project Description)](#-deskripsi-proyek-project-description)
-  - [📌 Daftar Isi (Table of Contents)](#-daftar-isi-table-of-contents)
-  - [🏛️ Arsitektur Platform (Platform Architecture)](#️-arsitektur-platform-platform-architecture)
-  - [✨ Fitur-Fitur Utama (Features Breakdown)](#-fitur-fitur-utama-features-breakdown)
-  - [📋 Prasyarat (Prerequisites)](#-prasyarat-prerequisites)
-  - [🚀 Panduan Instalasi (Installation)](#-panduan-instalasi-installation)
-  - [💡 Cara Penggunaan (Usage)](#-cara-penggunaan-usage)
-  - [📖 Dokumentasi API (API Reference)](#-dokumentasi-api-api-reference)
-  - [🗺️ Roadmap (Peta Jalan)](#️-roadmap-peta-jalan)
-  - [🤝 Panduan Berkontribusi (Contributing)](#-panduan-berkontribusi-contributing)
-  - [🧪 Pengujian (Tests)](#-pengujian-tests)
-  - [📄 Lisensi (License)](#-lisensi-license)
-  - [📞 Kontak (Contact)](#-kontak-contact)
+### Why Choose AEGILON?
+- ⚡ **Low-Overhead Architecture**: Built on FastAPI & PostgreSQL (Supabase) asynchronous non-blocking drivers.
+- 🎯 **Smart Deduplication & Evidence Management**: Automatically filters noise and attaches raw evidence logs to active incidents.
+- 🤖 **End-to-End SOAR Integration**: Automated scenario-based playbooks with n8n workflow support and instant Telegram alert notifications.
+- 📊 **Dynamic Risk Scoring**: Automatic severity scoring based on threat impact, MITRE ATT&CK mapping, and asset criticality.
+- 🕒 **Full Timezone Normalization (WIB / UTC+7)**: Accurate timestamp alignment across all telemetry, logs, audit trails, and incident IDs.
 
 ---
 
-## 🏛️ Arsitektur Platform (Platform Architecture)
+## 📂 Project Directory Structure
+
+Below is the 1-by-1 breakdown of every directory and module in the AEGILON workspace:
 
 ```text
-               Windows Endpoint (Osquery + Wazuh Agent)
-                                   │
-                                   ▼
-                          Wazuh Manager (SIEM)
-                                   │
-                                   ▼
-          FastAPI Backend API (Orchestrator) ◄───► PostgreSQL (Supabase DB)
-                                   │
-       ┌───────────────────────────┼───────────────────────────┐
-       ▼                           ▼                           ▼
-Detection Engine              Risk Engine              Automation Engine
-(ML / Rule-based)          (Severity Assessment)        (SOAR & Telegram)
-       │                           │                           │
-       └───────────────────────────┼───────────────────────────┘
-                                   ▼
-                      Next.js Analyst Dashboard (UI)
+aegilon/
+├── Aegilon/                         # Core Microservices Architecture
+│   ├── frontend/                    # Next.js 14 Web Application (SOC Analyst Dashboard)
+│   ├── backend/                     # FastAPI Core API & Orchestrator
+│   ├── detection-engine/            # Behavior & ML Threat Detection Engine
+│   ├── risk-engine/                 # Dynamic Risk Assessment & Scoring Engine
+│   ├── automation-engine/           # SOAR Playbooks & Telegram Automation Engine
+│   ├── docs/                        # Technical Architecture Documentation & API Specs
+│   └── scripts/                     # Seeder Scripts & Database Utilities
+├── detection/                       # Wazuh SIEM Custom Detection Rules (XML)
+├── n8n/                             # SOAR Automation Workflows & Telegram Integration Schemas
+├── report/                          # Comprehensive Technical Project Reports & Documents
+├── scripts/                         # Root Management & Helper Scripts
+├── wazuh-docker/                    # Dockerized Wazuh Manager & SIEM Deployment Stack
+├── docker-compose.yml               # Multi-container Microservice Orchestration Setup
+└── README.md                        # Primary Project Documentation
 ```
 
----
+### Folder Breakdown (1-by-1)
 
-## ✨ Fitur-Fitur Utama (Features Breakdown)
+#### 1. `Aegilon/` (Core Microservices Container)
+The primary application directory housing all independent microservices that form the AEGILON XDR platform:
+- **`Aegilon/frontend/`**: Built with **Next.js 14**, **React**, **TypeScript**, and **Tailwind CSS**. Provides a real-time responsive Web UI for SOC Analysts to monitor alerts, triage incidents, view telemetry, manage playbooks, and inspect audit logs.
+- **`Aegilon/backend/`**: Built with **FastAPI** (Python 3.10+). Acts as the central backend orchestrator, providing RESTful API endpoints, JWT authentication, Database ORM (PostgreSQL/Supabase), background sync loops, and event dispatchers.
+- **`Aegilon/detection-engine/`**: Microservice dedicated to threat detection. Executes dynamic rules from the database every 10 seconds and runs Machine Learning (Isolation Forest) anomaly detection against raw telemetry log data.
+- **`Aegilon/risk-engine/`**: Microservice that evaluates threat severity (`Low`, `Medium`, `High`, `Critical`) and calculates contextual risk scores based on asset criticality and MITRE ATT&CK technique weights.
+- **`Aegilon/automation-engine/`**: Microservice responsible for SOAR actions. Triggers automated playbooks, sends real-time alert notifications to Telegram, and dispatches webhooks to n8n workflows.
+- **`Aegilon/docs/`**: Technical design documents, architecture diagrams, and system specifications.
+- **`Aegilon/scripts/`**: Helper scripts for seeding detection rules (`seed_detection_rules.py`), mock incidents (`seed_mock_data.py`), and test runners.
 
-Fitur-fitur utama AEGILON dikelompokkan secara mendalam berdasarkan komponen pembentuknya:
+#### 2. `detection/` (Custom Wazuh XML Rules)
+Contains custom XML rule files used to configure the Wazuh SIEM Manager for endpoint telemetry collection:
+- `aegilon_process.xml`: Rules for monitoring suspicious process creation (e.g., CMD/PowerShell execution, privilege escalation).
+- `aegilon_network.xml`: Rules for suspicious network connections, beaconing, and port scans.
+- `aegilon_login.xml`: Rules for brute-force login attempts and authentication failures.
+- `aegilon_persistence.xml`: Rules for registry modifications, startup scripts, and scheduled tasks.
+- `aegilon_file.xml`: Rules for file creation, integrity monitoring, and ransomware behavior.
+- `aegilon_correlation.xml`: Multi-event correlation rules across telemetry types.
 
-### 1. 🛡️ Telemetry Ingestion & Wazuh SIEM Integration
-* **Automated Sync Background Loop**: FastAPI backend secara kontinu mengambil data alert dari Wazuh API setiap 5 detik secara asynchronous non-blocking.
-* **Host Telemetry Auto-Discovery**: Menginventarisasi dan mendaftarkan endpoint/host Windows baru secara otomatis ke database begitu alert pertama terdeteksi.
-* **WIB Timezone Normalization**: Mengonversi waktu UTC dari Wazuh & database ke standar Waktu Indonesia Barat (`Asia/Jakarta`).
+#### 3. `n8n/` (Automation Workflows)
+Contains JSON workflow definitions and guides for n8n SOAR integration:
+- `telegram_notification_workflow.json`: Pre-configured n8n workflow for sending formatted threat alerts and action buttons to Telegram.
+- `README.md`: Setup guide for importing and activating n8n workflows.
 
-### 2. ⚡ Behaviour-Based & ML Detection Engine
-* **Dynamic Database Rules**: Aturan deteksi dibaca secara terpusat langsung dari Supabase database setiap 10 detik tanpa perlu melakukan restart server backend.
-* **Cross-Layer Log Parser**: Mengonversi dan menganalisis raw logs telemetri (seperti eksekusi perintah CMD/PowerShell, koneksi jaringan, manipulasi registry, login berulang, dll.).
-* **Machine Learning Anomaly Detection**: Didukung algoritma Machine Learning (*Isolation Forest* / *Scikit-Learn*) untuk mendeteksi perilaku abnormal tak terstruktur (*zero-day anomaly*).
-* **Manual Run Trigger**: Endpoint `POST /detection/run` yang memungkinkan analis memicu analisis deteksi secara instan.
+#### 4. `report/`
+Contains official project presentation documentation and full PDF technical defense reports (`Group 3 - Aegilon.pdf`).
 
-### 3. 📊 Dynamic Risk Engine
-* **Contextual Risk Assessment**: Menghitung bobot risiko insiden secara otomatis berdasarkan tingkat kritisitas aset, dampak teknik serangan (MITRE ATT&CK), dan frekuensi kejadian.
-* **Severity Classification**: Mengelompokkan ancaman ke dalam tingkatan keparahan: `Low`, `Medium`, `High`, dan `Critical`.
+#### 5. `scripts/`
+Root-level utility scripts for system deployment, environment setup, and automated testing.
 
-### 4. 📝 Advanced Incident Management & Lifecycle
-* **Dynamic Sequence Numbering (WIB)**: Format penomoran insiden terurut otomatis: `INC-YYYYMMDD-XXXX` berbasis tanggal Waktu Indonesia Barat.
-* **Smart Duplicate Prevention (`occurrence++`)**: Jika terjadi alert berulang pada host dan rule yang sama sebelum insiden di-*Closed*, AEGILON secara otomatis menambah hit counter `occurrence` dan menambahkan bukti alert baru tanpa menduplikasi baris insiden.
-* **Evidence Management**: Tabel relasi `incident_alerts` mencatat seluruh alert pemicu sebagai barang bukti digital insiden.
-* **Audit Trail Lifecycle History**: Tabel `incident_history` mencatat kronologi transisi status insiden (`Open -> Investigating -> Contained -> Resolved -> Closed`) beserta analis yang menanganinya.
-
-### 5. 🤖 SOAR & Automation Engine
-* **Automated Playbook Execution**: Memicu instruksi mitigasi otomatis (seperti isolasi host atau pemblokiran sesi).
-* **Telegram Instant Notification**: Mengirim notifikasi ancaman berisiko tinggi secara *real-time* ke Telegram analis SOC.
-* **n8n Workflow Integration**: Dukungan integrasi webhook ke n8n untuk otomatisasi alur kerja keamanan yang lebih kompleks.
-
-### 6. 🗃️ Enterprise Audit Logging
-* **SOC Analyst Activity Tracking**: Mencatat semua tindakan penting analis SOC (login, update status insiden, penugasan, hingga eksekusi aksi respons) ke tabel `audit_logs` beserta IP address client.
-* **Audit Log Monitoring API**: Endpoint terproteksi `GET /audit-logs` untuk keperluan visibilitas dan kepatuhan audit.
-
-### 7. 🖥️ Next.js Analyst Dashboard UI
-* **SOC Overview Metrics**: Menampilkan widget metrik insiden aktif, distribusi severity, serta status host.
-* **Interactive Incident Triage**: Tampilan antarmuka terperinci untuk investigasi insiden, timeline riwayat, daftar bukti alert, dan panel respons.
-* **Host & Alert Inventory**: Tabel manajemen host terdaftar dan histori alert telemetri mentah.
+#### 6. `wazuh-docker/`
+Complete Docker Compose deployment stack for running a multi-node or single-node Wazuh Manager, Wazuh Indexer, and Wazuh Dashboard locally or on server environments.
 
 ---
 
-## 📋 Prasyarat (Prerequisites)
+## 🖥️ Web Dashboard Pages & Features (1-by-1 Breakdown)
 
-Sebelum menjalankan AEGILON, pastikan lingkungan lokal Anda memenuhi prasyarat berikut:
+The AEGILON Analyst Dashboard (`Aegilon/frontend`) is organized into dedicated feature pages accessible from the main navigation sidebar:
 
-| Software | Versi Minimum | Keterangan |
+```text
+frontend/src/app/(dashboard)/
+├── page.tsx                         # 📊 Overview Dashboard (Home)
+├── incidents/                       # 📝 Incident Management & Triage
+│   ├── page.tsx                     #    └─ Incidents List & Filtering
+│   └── [id]/page.tsx                #    └─ Detailed Incident Investigation Panel
+├── alerts/                          # 🔔 Telemetry & Alert Monitoring
+│   └── page.tsx                     #    └─ Raw Telemetry Feed & Ingestion Status
+├── hosts/                           # 🖥️ Host & Endpoint Inventory
+│   └── page.tsx                     #    └─ Endpoint Discovery & Health Monitoring
+├── playbooks/                       # 🤖 SOAR Playbooks
+│   └── page.tsx                     #    └─ Automated Playbook Management
+├── responses/                       # ⚡ Active Response History
+│   └── page.tsx                     #    └─ Response Action Execution Logs
+├── rules/                           # 🎯 Detection Rules Management
+│   └── page.tsx                     #    └─ Dynamic Rule Configuration & MITRE Mapping
+├── audit-logs/                      # 🗃️ Enterprise Audit Trail
+│   └── page.tsx                     #    └─ SOC Analyst Activity & Compliance Logs
+├── iso-standards/                   # 📜 ISO Standards Compliance
+│   └── page.tsx                     #    └─ ISO 27001 Control Mapping & Metrics
+└── settings/                        # ⚙️ Platform Settings
+    └── page.tsx                     #    └─ System Configurations, API Keys & Profiles
+```
+
+### Detailed Feature & Page Descriptions
+
+#### 1. 📊 Overview Dashboard Page (`/`)
+- **Key Features**:
+  - **SOC Summary Widgets**: Real-time counters for active incidents, total alerts ingested, host statuses, and system health.
+  - **Severity Distribution Charts**: Visual Breakdown of threats by severity (`Low`, `Medium`, `High`, `Critical`).
+  - **Recent Incident Stream**: Live feed of newly opened incidents requiring immediate analyst triage.
+  - **Host Status Monitor**: Status indicators showing online/offline Windows endpoints monitored by Wazuh/Osquery.
+
+#### 2. 📝 Incident Management Page (`/incidents` & `/incidents/[id]`)
+- **Key Features**:
+  - **Incident List View (`/incidents`)**: Filterable table of all security incidents sorted by status (`Open`, `Investigating`, `Contained`, `Resolved`, `Closed`), severity, and assigned analyst.
+  - **Dynamic Sequence Numbering**: Structured incident numbering in WIB format (`INC-YYYYMMDD-XXXX`).
+  - **Smart Duplicate Prevention (`occurrence++`)**: Consolidates new alerts into existing open incidents if matching threat signatures and active hosts are detected.
+  - **Detailed Investigation Panel (`/incidents/[id]`)**:
+    - **Evidence Alert Timeline**: Chronological digital evidence log attached to the incident.
+    - **Lifecycle Status Transition**: One-click status updates (`Open` ➔ `Investigating` ➔ `Contained` ➔ `Resolved` ➔ `Closed`).
+    - **Audit History Trail**: Complete record of analyst notes, status changes, and time of actions.
+    - **Quick SOAR Actions**: Trigger mitigation directly from the incident investigation page.
+
+#### 3. 🔔 Telemetry Alerts Monitoring Page (`/alerts`)
+- **Key Features**:
+  - **Raw Alert Stream**: Comprehensive list of raw telemetry alerts ingested from Wazuh SIEM every 5 seconds.
+  - **Filter & Search**: Search by Rule ID, Agent Name, MITRE Technique, Severity, or Process Name.
+  - **Raw Log Inspector**: Expandable JSON viewer for deep-dive analysis of raw agent event data.
+
+#### 4. 🖥️ Host & Endpoint Inventory Page (`/hosts`)
+- **Key Features**:
+  - **Auto-Discovery**: Automatic host registration when a new Windows endpoint sends telemetry.
+  - **Endpoint Health Details**: Inspect Hostname, IP Address, OS Version, Agent Status, and Last Keepalive Timestamp.
+  - **Host Risk Score**: Individual host risk assessment based on recent threat activity.
+
+#### 5. 🤖 SOAR Playbooks Page (`/playbooks`)
+- **Key Features**:
+  - **Playbook Library**: List of pre-configured automated response playbooks (e.g., Host Isolation, Process Termination, IP Blocking).
+  - **Trigger Conditions**: Configure automatic execution thresholds based on incident severity or rule categories.
+  - **Enable/Disable Controls**: Toggle playbooks on or off based on operational SOC requirements.
+
+#### 6. ⚡ Active Response Execution Log Page (`/responses`)
+- **Key Features**:
+  - **Execution Audit**: Log history of all automated and manual response actions executed across endpoints.
+  - **Status Tracker**: View response status (`Success`, `Pending`, `Failed`) with execution timestamps and target host information.
+
+#### 7. 🎯 Detection Rules Management Page (`/rules`)
+- **Key Features**:
+  - **Dynamic Rule Engine**: Manage detection rules stored centrally in PostgreSQL without needing server restarts.
+  - **MITRE ATT&CK Mapping**: Every rule is mapped to standard MITRE ATT&CK Tactics and Techniques (e.g., Execution, Persistence, Privilege Escalation).
+  - **Rule Severity & Parameters**: Adjust severity weights, threshold counters, and rule logic dynamically.
+
+#### 8. 🗃️ Enterprise Audit Logs Page (`/audit-logs`)
+- **Key Features**:
+  - **SOC Activity Tracking**: Full audit log recording analyst logins, incident status changes, rule modifications, and playbook executions.
+  - **Client IP & User Attribution**: Tracks the exact analyst username, timestamp, action type, and IP address for compliance audits.
+
+#### 9. 📜 ISO Standards Compliance Page (`/iso-standards`)
+- **Key Features**:
+  - **ISO 27001 Mapping**: Maps platform capabilities and detection coverage directly to ISO/IEC 27001 controls (e.g., A.12.4 Logging and Monitoring, A.16 Incident Management).
+  - **Compliance Scorecards**: Executive visual metrics demonstrating security posture and audit readiness.
+
+#### 10. ⚙️ Platform Settings Page (`/settings`)
+- **Key Features**:
+  - **Integration Credentials**: Manage Wazuh API, Telegram Bot Token, Chat ID, and n8n Webhook URLs.
+  - **User Profile & JWT Tokens**: Update analyst account details and security settings.
+  - **Timezone Settings**: View active timezone normalization settings (Default: `Asia/Jakarta`, WIB).
+
+---
+
+## 📋 Prerequisites
+
+Ensure your environment meets the following requirements before installing AEGILON:
+
+| Software | Minimum Version | Description |
 |---|---|---|
-| **Docker & Docker Compose** | Docker v20.10+ / Compose v2.0+ | Untuk kompilasi & eksekusi container microservices |
-| **Node.js** | v18.0.0+ | Jika ingin menjalankan frontend secara terpisah |
-| **Python** | v3.10+ | Jika ingin menjalankan script/backend secara lokal |
-| **PostgreSQL / Supabase** | v14+ | Database utama penyimpan data telemetri, alert, & insiden |
-| **Wazuh Manager** | v4.x | SIEM Manager untuk pengumpulan telemetri agent endpoint |
+| **Docker & Docker Compose** | Docker v20.10+ / Compose v2.0+ | Required for microservices containerization |
+| **Node.js** | v18.0.0+ | Required for running frontend locally outside Docker |
+| **Python** | v3.10+ | Required for backend development and script execution |
+| **PostgreSQL / Supabase** | v14+ | Core database for telemetry, alerts, incidents & rules |
+| **Wazuh Manager** | v4.x | SIEM Manager for host telemetry agent collection |
 
 ---
 
-## 🚀 Panduan Instalasi (Installation)
+## 🚀 Installation Guide
 
-### Langkah 1: Clone Repository
+### Step 1: Clone the Repository
 ```bash
 git clone https://github.com/ryl-code/aegilon.git
 cd aegilon
 ```
 
-### Langkah 2: Konfigurasi Environment Variables
-Buat file `.env` dari template `.env.example`:
+### Step 2: Configure Environment Variables
+Create a `.env` file from `.env.example`:
 ```bash
 cp .env.example .env
 ```
 
-Isi variabel di dalam file `.env` sesuai kredensial lingkungan Anda:
+Populate the `.env` file with your credentials:
 ```env
 # Database & Authentication Configuration
 DATABASE_URL=postgresql://postgres.eyoykqofbsrabctwfotr:YOUR_PASSWORD@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require
@@ -161,143 +233,93 @@ TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
 TELEGRAM_CHAT_ID=YOUR_TELEGRAM_CHAT_ID
 ```
 
-### Langkah 3: Build & Jalankan Container
-Jalankan seluruh layanan microservices AEGILON menggunakan Docker Compose:
+### Step 3: Build & Start Microservices
+Run the entire AEGILON stack using Docker Compose:
 
 ```bash
 docker compose up --build -d
 ```
 
-Periksa apakah seluruh container berjalan dengan baik:
+Verify that all containers are healthy and running:
 ```bash
 docker compose ps
 ```
 
-### Langkah 4: Inisialisasi Detection Rules
-Jalankan script seeder untuk memasukkan 20 core rules deteksi bawaan AEGILON ke database:
+### Step 4: Initialize Detection Rules
+Run the database seeder to populate default detection rules:
 ```bash
 docker compose exec backend python /app/seed_detection_rules.py
 ```
 
 ---
 
-## 💡 Cara Penggunaan (Usage)
+## 💡 Usage
 
-### 1. Mengakses SOC Analyst Dashboard
-Buka peramban web dan navigasikan ke alamat berikut:
-- **URL Dashboard**: `http://localhost:3002`
-- **Tampilan UI**: Dashboard menyediakan ringkasan insiden, pemantauan status host, serta manajemen alert.
+### 1. Accessing the SOC Analyst Dashboard
+Open your browser and navigate to:
+- **Dashboard URL**: `http://localhost:3002`
+- **FastAPI Documentation (Swagger UI)**: `http://localhost:8080/docs`
 
-### 2. Alur Kerja Investigasi Insiden (Triage Workflow)
-1. Akses menu **Incidents** pada Dashboard.
-2. Pilih insiden aktif dengan format kode `INC-YYYYMMDD-XXXX`.
-3. Periksa panel **Evidence Alerts** untuk melihat log bukti pemicu serangan.
-4. Perbarui status insiden (`Open` ➡️ `Investigating` ➡️ `Contained` ➡️ `Resolved` ➡️ `Closed`). Setiap perubahan akan dicatat secara otomatis ke audit trail.
+### 2. Incident Triage Workflow
+1. Navigate to **Incidents** (`/incidents`) on the Dashboard.
+2. Select an active incident formatted as `INC-YYYYMMDD-XXXX`.
+3. Inspect the **Evidence Alerts** panel to examine threat evidence logs.
+4. Transition the incident lifecycle (`Open` ➔ `Investigating` ➔ `Contained` ➔ `Resolved` ➔ `Closed`). All actions are logged to the audit trail automatically.
 
 ---
 
-## 📖 Dokumentasi API (API Reference)
+## 📖 API Reference
 
-AEGILON Backend menyediakan antarmuka dokumentasi Swagger UI interaktif yang dapat diakses di **`http://localhost:8080/docs`**.
+AEGILON Backend provides an interactive OpenAPI / Swagger UI at **`http://localhost:8080/docs`**.
 
-### Daftar Ringkas Endpoints Utama
+### Core Endpoints Summary
 
-| Kategori | Method | Endpoint | Deskripsi | Auth |
+| Category | Method | Endpoint | Description | Auth |
 |---|---|---|---|---|
-| **Authentication** | `POST` | `/auth/login` | Login pengguna untuk mendapatkan JWT Access Token | ❌ No |
-| | `GET` | `/auth/me` | Mengambil detail profil pengguna yang terautentikasi | ✅ Yes |
-| **Health Check** | `GET` | `/health` | Memeriksa status kesehatan server backend & database | ❌ No |
-| **Hosts** | `GET` | `/hosts` | Menampilkan daftar seluruh endpoint host terdaftar | ✅ Yes |
-| | `GET` | `/hosts/{id}` | Menampilkan detail telemetri host berdasarkan ID | ✅ Yes |
-| **Alerts** | `GET` | `/alerts` | Menampilkan daftar alert telemetri (dengan paginasi) | ✅ Yes |
-| | `GET` | `/alerts/unprocessed` | Menampilkan alert mentah baru berstatus `new` | ✅ Yes |
-| **Incidents** | `GET` | `/incidents` | Menampilkan daftar insiden (filter severity/status) | ✅ Yes |
-| | `GET` | `/incidents/stats` | Ringkasan statistik insiden untuk widget dashboard | ✅ Yes |
-| | `GET` | `/incidents/{id}` | Menampilkan detail insiden terperinci | ✅ Yes |
-| | `GET` | `/incidents/{id}/history` | Menampilkan audit trail transisi status insiden | ✅ Yes |
-| | `GET` | `/incidents/{id}/alerts` | Menampilkan daftar bukti alert (*evidence*) insiden | ✅ Yes |
-| | `POST` | `/incidents` | Membuat entri insiden baru secara manual | ✅ Yes |
-| | `PATCH` | `/incidents/{id}/status` | Mengubah status siklus hidup insiden | ✅ Yes |
-| **Detection** | `POST` | `/detection/run` | Memicu eksekusi engine deteksi backend secara instan | ✅ Yes |
-| **Audit Logs** | `GET` | `/audit-logs` | Menampilkan log audit aktivitas analis SOC | ✅ Yes |
+| **Authentication** | `POST` | `/auth/login` | Authenticate user & obtain JWT Access Token | ❌ No |
+| | `GET` | `/auth/me` | Retrieve authenticated user profile details | ✅ Yes |
+| **Health Check** | `GET` | `/health` | Check backend server & database status | ❌ No |
+| **Hosts** | `GET` | `/hosts` | List all registered endpoint hosts | ✅ Yes |
+| | `GET` | `/hosts/{id}` | Get host telemetry details by ID | ✅ Yes |
+| **Alerts** | `GET` | `/alerts` | List telemetry alerts (paginated) | ✅ Yes |
+| | `GET` | `/alerts/unprocessed` | Retrieve unprocessed alerts with `new` status | ✅ Yes |
+| **Incidents** | `GET` | `/incidents` | List incidents (filter by severity/status) | ✅ Yes |
+| | `GET` | `/incidents/stats` | Retrieve incident statistics for dashboard widgets | ✅ Yes |
+| | `GET` | `/incidents/{id}` | Get detailed incident breakdown | ✅ Yes |
+| | `GET` | `/incidents/{id}/history` | Retrieve incident audit trail history | ✅ Yes |
+| | `GET` | `/incidents/{id}/alerts` | List digital evidence alerts for an incident | ✅ Yes |
+| | `POST` | `/incidents` | Create a new incident entry manually | ✅ Yes |
+| | `PATCH` | `/incidents/{id}/status` | Update incident lifecycle status | ✅ Yes |
+| **Detection** | `POST` | `/detection/run` | Trigger backend detection engine scan | ✅ Yes |
+| **Audit Logs** | `GET` | `/audit-logs` | List SOC analyst audit trail logs | ✅ Yes |
 
-### Contoh Kode Snippet
+---
 
-**Pengujian Login via cURL:**
+## 🧪 Testing
+
+AEGILON includes test scripts for verifying core detection logic and incident management:
+
 ```bash
-curl -X POST "http://localhost:8080/auth/login" \
-     -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "username=admin@aegilon.com&password=YourPassword"
-```
-
-**Memicu Engine Deteksi via Python:**
-```python
-import requests
-
-url = "http://localhost:8080/detection/run"
-headers = {
-    "Authorization": "Bearer YOUR_JWT_ACCESS_TOKEN"
-}
-
-response = requests.post(url, headers=headers)
-print(response.json())
-```
-
----
-
-## 🗺️ Roadmap (Peta Jalan)
-
-- [x] Integration with Wazuh SIEM & Osquery host telemetry.
-- [x] Dynamic Database-driven Rule Engine & Cross-layer parsing.
-- [x] Smart Incident Deduplication (`occurrence++`) & Evidence Tracking.
-- [x] Enterprise Audit Logging & IP Tracing.
-- [x] Next.js 14 SOC Analyst Dashboard UI.
-- [x] SOAR Automation Playbooks & Telegram Instant Alert.
-- [ ] **Fase 1**: Penambahan Model ML Anomaly Detection berbasis Autoencoder untuk mendeteksi *lateral movement*.
-- [ ] **Fase 2**: Asisten AI SOC Copilot (LLM) untuk pembuatan ringkasan eksekutif insiden secara gratis/lokal.
-- [ ] **Fase 3**: Dukungan parser otomatis untuk format YARA & Sigma Rules.
-- [ ] **Fase 4**: Pengujian integrasi Multi-Tenancy & Custom Agent Cross-Platform (Linux & macOS).
-
----
-
-## 🤝 Panduan Berkontribusi (Contributing)
-
-Kami menyambut baik kontribusi dalam pengembangan AEGILON! Ikuti langkah-langkah berikut:
-
-1. **Fork** repository ini.
-2. Buat **Feature Branch** baru (`git checkout -b feature/FiturBaruAnda`).
-3. Simpan perubahan Anda dengan commit yang jelas (`git commit -m 'Menambahkan FiturBaruAnda'`).
-4. Push branch ke repository Anda (`git push origin feature/FiturBaruAnda`).
-5. Buat **Pull Request (PR)** baru dan jelaskan fitur atau perbaikan yang Anda lakukan.
-
----
-
-## 🧪 Pengujian (Tests)
-
-AEGILON dilengkapi dengan skrip verifikasi dan unit test untuk menguji modul utama:
-
-### Menjalankan Unit Tests di Lingkungan Docker
-```bash
-# Pengujian Manajemen Insiden & Smart Deduplication
+# Test Incident Management & Smart Deduplication
 docker compose run --entrypoint python backend /app/test_incident_management.py
 
-# Pengujian Engine Deteksi & Log Parsing
+# Test Detection Engine & Log Parsing
 docker compose run --entrypoint python backend /app/test_detection_engine.py
 ```
 
 ---
 
-## 📄 Lisensi (License)
+## 📄 License
 
-Proyek ini dilisensikan di bawah lisensi **MIT License**. Lihat file [LICENSE](LICENSE) untuk informasi lisensi secara rinci.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📞 Kontak (Contact)
+## 📞 Contact
 
-- **Tim Pengembang**: AEGILON XDR Security Team
+- **Development Team**: AEGILON XDR Security Team
 - **GitHub Repository**: [https://github.com/ryl-code/aegilon](https://github.com/ryl-code/aegilon)
-- **Dokumentasi & Support**: `support@aegilon.sec`
+- **Documentation & Support**: `support@aegilon.sec`
 
 ---
 
