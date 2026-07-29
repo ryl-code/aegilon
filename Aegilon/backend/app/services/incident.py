@@ -8,10 +8,9 @@ from app.models.incident_alert import IncidentAlert
 from app.models.incident_history import IncidentHistory
 from app.incident.creator import incident_creator
 from app.incident.history import history_manager
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from uuid import UUID
 from typing import List, Optional, Dict, Any
-from zoneinfo import ZoneInfo
 
 class IncidentService:
     async def get_incidents(
@@ -68,7 +67,7 @@ class IncidentService:
         return await incident_repo.get_stats(db)
 
     async def create_incident(self, db: AsyncSession, obj_in: dict) -> Incident:
-        wib = ZoneInfo("Asia/Jakarta")
+        wib = timezone(timedelta(hours=7))
         now_wib = datetime.now(wib)
         
         incident = await incident_creator.create_new_incident(
@@ -99,7 +98,7 @@ class IncidentService:
         if not incident:
             return None
             
-        wib = ZoneInfo("Asia/Jakarta")
+        wib = timezone(timedelta(hours=7))
         updates = {}
         
         for field in ["priority", "status", "assigned_to", "description"]:
@@ -137,7 +136,7 @@ class IncidentService:
         if not incident:
             return None
             
-        wib = ZoneInfo("Asia/Jakarta")
+        wib = timezone(timedelta(hours=7))
         updates = {
             "risk_score": analysis_data["risk_score"],
             "severity": analysis_data["severity"],

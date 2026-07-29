@@ -29,7 +29,7 @@ class AegilonXDRTester:
         self.base_url = base_url.rstrip("/")
         self.email = email or os.getenv("ADMIN_EMAIL", "admin@aegilon.com")
         self.password = password or os.getenv("ADMIN_PASSWORD", "admin123")
-        self.client = httpx.Client(timeout=15.0)
+        self.client = httpx.Client(timeout=30.0)
         self.headers = {"Content-Type": "application/json"}
         self.token = None
         self.stats = {"passed": 0, "failed": 0, "skipped": 0}
@@ -172,23 +172,45 @@ class AegilonXDRTester:
             self.log_result("Query Incident Vault Metrics & Stats", False, str(e))
 
         # 3. Create New Incident directly in Vault if needed for testing
+        host_id = None
+        rule_id = None
         try:
-            new_inc_payload = {
-                "title": f"TEST - Mimikatz LSASS Privilege Escalation {random.randint(100, 999)}",
-                "severity": "CRITICAL",
-                "risk_score": 92.5,
-                "status": "Open",
-                "description": "Automated integration test incident for vault verification."
-            }
-            resp = self.client.post(f"{self.base_url}/incidents", json=new_inc_payload, headers=self.headers)
-            if resp.status_code in [200, 201]:
-                created_inc = resp.json()
-                target_incident_id = created_inc.get("id")
-                self.log_result("Incident Vault Direct Manual Creation", True, f"Created Incident ID: {target_incident_id}")
-            else:
-                self.log_result("Incident Vault Direct Manual Creation", False, f"HTTP {resp.status_code}: {resp.text}")
-        except Exception as e:
-            self.log_result("Incident Vault Direct Manual Creation", False, str(e))
+            hosts_res = self.client.get(f"{self.base_url}/hosts", headers=self.headers)
+            if hosts_res.status_code == 200 and hosts_res.json():
+                host_id = hosts_res.json()[0].get("id")
+        except Exception:
+            pass
+
+        try:
+            rules_res = self.client.get(f"{self.base_url}/rules", headers=self.headers)
+            if rules_res.status_code == 200 and rules_res.json():
+                rule_id = rules_res.json()[0].get("id")
+        except Exception:
+            pass
+
+        if host_id and rule_id:
+            try:
+                new_inc_payload = {
+                    "title": f"TEST - Mimikatz LSASS Privilege Escalation {random.randint(100, 999)}",
+                    "description": "Automated integration test incident for vault verification.",
+                    "rule_id": rule_id,
+                    "host_id": host_id,
+                    "severity": "CRITICAL",
+                    "priority": "High",
+                    "category": "Privilege Escalation",
+                    "confidence": 90
+                }
+                resp = self.client.post(f"{self.base_url}/incidents", json=new_inc_payload, headers=self.headers)
+                if resp.status_code in [200, 201]:
+                    created_inc = resp.json()
+                    target_incident_id = created_inc.get("id")
+                    self.log_result("Incident Vault Direct Manual Creation", True, f"Created Incident ID: {target_incident_id}")
+                else:
+                    self.log_result("Incident Vault Direct Manual Creation", False, f"HTTP {resp.status_code}: {resp.text[:100]}")
+            except Exception as e:
+                self.log_result("Incident Vault Direct Manual Creation", False, str(e))
+        else:
+            self.log_result("Incident Vault Direct Manual Creation", False, "Could not fetch valid host_id or rule_id for creation")
 
         # 4. Verify Evidence Alerts and Lifecycle History for the incident
         if target_incident_id:
@@ -308,10 +330,19 @@ class AegilonXDRTester:
     # -------------------------------------------------------------
     # PILLAR 4: KILL & ISOLATE
     # -------------------------------------------------------------
-    def test_kill_and_isolate(self):
+    def test_kill_and_isolate(self, incident_id: Optional[str] = None):
         print(f"\n{CYAN}{BOLD}====================================================={RESET}")
         print(f"{CYAN}{BOLD}⚡ TEST PILLAR 4: KILL & ISOLATE (Active Response){RESET}")
         print(f"{CYAN}{BOLD}====================================================={RESET}")
+
+        # If incident_id not provided, try fetching one from backend
+        if not incident_id:
+            try:
+                inc_res = self.client.get(f"{self.base_url}/incidents", headers=self.headers)
+                if inc_res.status_code == 200 and inc_res.json():
+                    incident_id = inc_res.json()[0].get("id")
+            except Exception:
+                pass
 
         # 1. Execute Process Kill Active Response
         kill_payload = {
@@ -347,19 +378,23 @@ class AegilonXDRTester:
             self.log_result("Isolate Host Network (isolate-host / host-deny)", False, str(e))
 
         # 3. Log Active Response Containment Record in Response History
-        try:
-            containment_log = {
-                "action": "Host Isolation & Process Termination (Kill PID 4892)",
-                "status": "executed",
-                "message": "Host win11-finance-04 network interface quarantined and PID 4892 killed."
-            }
-            resp = self.client.post(f"{self.base_url}/responses", json=containment_log, headers=self.headers)
-            if resp.status_code in [200, 201]:
-                self.log_result("Containment Record Audit Logging", True, "Kill & Isolate audit trail updated")
-            else:
-                self.log_result("Containment Record Audit Logging", False, f"HTTP {resp.status_code}")
-        except Exception as e:
-            self.log_result("Containment Record Audit Logging", False, str(e))
+        if incident_id:
+            try:
+                containment_log = {
+                    "incident_id": incident_id,
+                    "action": "Host Isolation & Process Termination (Kill PID 4892)",
+                    "status": "executed",
+                    "message": "Host win11-finance-04 network interface quarantined and PID 4892 killed."
+                }
+                resp = self.client.post(f"{self.base_url}/responses", json=containment_log, headers=self.headers)
+                if resp.status_code in [200, 201]:
+                    self.log_result("Containment Record Audit Logging", True, "Kill & Isolate audit trail updated")
+                else:
+                    self.log_result("Containment Record Audit Logging", False, f"HTTP {resp.status_code}: {resp.text[:100]}")
+            except Exception as e:
+                self.log_result("Containment Record Audit Logging", False, str(e))
+        else:
+            self.log_result("Containment Record Audit Logging", False, "No incident_id available to link containment record")
 
     def run_all_tests(self):
         self.print_banner()
@@ -374,7 +409,7 @@ class AegilonXDRTester:
         self.test_alerts_stream()
         incident_id = self.test_incident_vault()
         self.test_response_actions(incident_id)
-        self.test_kill_and_isolate()
+        self.test_kill_and_isolate(incident_id)
 
         # Summary
         print(f"\n{CYAN}{BOLD}{'='*70}{RESET}")

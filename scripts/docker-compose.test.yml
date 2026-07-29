@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   test-1-alerts-stream:
     build:
@@ -7,6 +5,8 @@ services:
       dockerfile: scripts/Dockerfile.test
     container_name: aegilon-test-alerts-stream
     command: ["python", "/app/scripts/test_1_alerts_stream.py"]
+    volumes:
+      - .:/app/scripts
     environment:
       - BACKEND_URL=http://backend:8080
     networks:
@@ -18,6 +18,8 @@ services:
       dockerfile: scripts/Dockerfile.test
     container_name: aegilon-test-incident-vault
     command: ["python", "/app/scripts/test_2_incident_vault.py"]
+    volumes:
+      - .:/app/scripts
     environment:
       - BACKEND_URL=http://backend:8080
     networks:
@@ -29,6 +31,8 @@ services:
       dockerfile: scripts/Dockerfile.test
     container_name: aegilon-test-response-actions
     command: ["python", "/app/scripts/test_3_response_actions.py"]
+    volumes:
+      - .:/app/scripts
     environment:
       - BACKEND_URL=http://backend:8080
     networks:
@@ -40,6 +44,8 @@ services:
       dockerfile: scripts/Dockerfile.test
     container_name: aegilon-test-kill-isolate
     command: ["python", "/app/scripts/test_4_kill_isolate.py"]
+    volumes:
+      - .:/app/scripts
     environment:
       - BACKEND_URL=http://backend:8080
     networks:
@@ -51,6 +57,8 @@ services:
       dockerfile: scripts/Dockerfile.test
     container_name: aegilon-test-all-features
     command: ["python", "/app/scripts/test_xdr_features.py"]
+    volumes:
+      - .:/app/scripts
     environment:
       - BACKEND_URL=http://backend:8080
     networks:

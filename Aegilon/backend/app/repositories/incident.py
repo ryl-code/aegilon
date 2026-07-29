@@ -126,9 +126,8 @@ class IncidentRepository(BaseRepository[Incident]):
         total_hosts = (await db.execute(hosts_count_stmt)).scalar() or 0
         active_alerts = (await db.execute(alerts_count_stmt)).scalar() or 0
 
-        from datetime import timedelta
-        from zoneinfo import ZoneInfo
-        wib = ZoneInfo("Asia/Jakarta")
+        from datetime import timedelta, timezone
+        wib = timezone(timedelta(hours=7))
         now = datetime.now(wib)
         
         # Generate strict time buckets in WIB (Asia/Jakarta, UTC+7)

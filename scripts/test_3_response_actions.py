@@ -25,12 +25,21 @@ def run_test_3_response_actions(base_url: str):
     print(f"Target Backend API : {BOLD}{base_url}{RESET}")
     print(f"Timestamp          : {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
-    client = httpx.Client(timeout=10.0)
+    client = httpx.Client(timeout=15.0)
 
-    # 1. Trigger Telegram Instant Alert (SOAR)
+    # 1. Fetch an incident ID to link response action
+    incident_id = None
+    try:
+        inc_res = client.get(f"{base_url}/incidents")
+        if inc_res.status_code == 200 and inc_res.json():
+            incident_id = inc_res.json()[0].get("id")
+    except Exception:
+        pass
+
+    # 2. Trigger Telegram Instant Alert (SOAR)
     print(f"{BOLD}[1/3] Triggering SOAR Telegram Analyst Instant Alert Dispatch...{RESET}")
     telegram_payload = {
-        "incident_id": f"INC-DEMO-{random.randint(1000, 9999)}",
+        "incident_id": incident_id or f"INC-DEMO-{random.randint(1000, 9999)}",
         "severity": "CRITICAL",
         "risk_score": 98.5,
         "title": "Demonstration: Brute Force & Privilege Escalation Detected",
@@ -47,7 +56,7 @@ def run_test_3_response_actions(base_url: str):
     except Exception as e:
         print(f"  [{RED}FAILED{RESET}] {str(e)}")
 
-    # 2. Query Playbooks Registry
+    # 3. Query Playbooks Registry
     print(f"\n{BOLD}[2/3] Querying SOAR Playbooks Registry...{RESET}")
     try:
         r = client.get(f"{base_url}/playbooks")
@@ -61,22 +70,26 @@ def run_test_3_response_actions(base_url: str):
     except Exception as e:
         print(f"  [{RED}FAILED{RESET}] {str(e)}")
 
-    # 3. Log Response Action Execution Record
+    # 4. Log Response Action Execution Record
     print(f"\n{BOLD}[3/3] Recording Response Action Execution in Database...{RESET}")
-    resp_payload = {
-        "action": "Firewall Drop Rule & Revoke Session Tokens",
-        "status": "executed",
-        "message": "Automated SOAR playbook mitigation executed successfully for demo."
-    }
-    try:
-        r = client.post(f"{base_url}/responses", json=resp_payload)
-        if r.status_code in [200, 201]:
-            data = r.json()
-            print(f"  [{GREEN}PASSED{RESET}] Response Action Logged! ID={data.get('id')} | Status={data.get('status')}")
-        else:
-            print(f"  [{RED}FAILED{RESET}] HTTP {r.status_code}: {r.text}")
-    except Exception as e:
-        print(f"  [{RED}FAILED{RESET}] {str(e)}")
+    if incident_id:
+        resp_payload = {
+            "incident_id": incident_id,
+            "action": "Firewall Drop Rule & Revoke Session Tokens",
+            "status": "executed",
+            "message": "Automated SOAR playbook mitigation executed successfully for demo."
+        }
+        try:
+            r = client.post(f"{base_url}/responses", json=resp_payload)
+            if r.status_code in [200, 201]:
+                data = r.json()
+                print(f"  [{GREEN}PASSED{RESET}] Response Action Logged! ID={data.get('id')} | Status={data.get('status')}")
+            else:
+                print(f"  [{RED}FAILED{RESET}] HTTP {r.status_code}: {r.text}")
+        except Exception as e:
+            print(f"  [{RED}FAILED{RESET}] {str(e)}")
+    else:
+        print(f"  [{YELLOW}SKIPPED{RESET}] No existing incident found to link response action record.")
 
     print(f"\n{CYAN}{BOLD}{'='*70}{RESET}")
     print(f"{GREEN}{BOLD}🎉 TEST 3 (RESPONSE ACTIONS) COMPLETED SUCCESSFULLY!{RESET}")

@@ -1,5 +1,4 @@
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.incident import Incident
@@ -8,7 +7,7 @@ import uuid
 class IncidentCreator:
     @staticmethod
     async def generate_incident_number(db: AsyncSession) -> str:
-        wib = ZoneInfo("Asia/Jakarta")
+        wib = timezone(timedelta(hours=7))
         now_wib = datetime.now(wib)
         date_str = now_wib.strftime("%Y%m%d")
         

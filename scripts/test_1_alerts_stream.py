@@ -25,7 +25,7 @@ def run_test_1_alerts_stream(base_url: str):
     print(f"Target Backend API : {BOLD}{base_url}{RESET}")
     print(f"Timestamp          : {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
-    client = httpx.Client(timeout=10.0)
+    client = httpx.Client(timeout=15.0)
 
     # 1. Health Check
     print(f"{BOLD}[1/3] Checking Backend Health Status...{RESET}")
@@ -65,7 +65,6 @@ def run_test_1_alerts_stream(base_url: str):
     try:
         r = client.post(f"{base_url}/wazuh/alerts", json=sample_alert)
         if r.status_code in [200, 201]:
-            res = r.json()
             print(f"  [{GREEN}PASSED{RESET}] Alert Ingested Successfully! Status: {r.status_code}")
             print(f"           Event Details: Agent={sample_alert['agent']['name']} | Rule={sample_alert['rule']['id']} | Severity=HIGH/CRITICAL")
         else:

@@ -116,7 +116,8 @@ async def create_incident(
         resource=f"incident:{incident.id}",
         ip_address=request.client.host if request.client else None
     )
-    return incident
+    full_incident = await incident_service.get_incident(db, incident.id)
+    return full_incident or incident
 
 @router.patch("/{incident_id}", response_model=IncidentResponse)
 async def update_incident(

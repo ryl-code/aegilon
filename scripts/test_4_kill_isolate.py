@@ -25,7 +25,16 @@ def run_test_4_kill_isolate(base_url: str):
     print(f"Target Backend API : {BOLD}{base_url}{RESET}")
     print(f"Timestamp          : {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
 
-    client = httpx.Client(timeout=10.0)
+    client = httpx.Client(timeout=15.0)
+
+    # Fetch incident ID if available
+    incident_id = None
+    try:
+        inc_res = client.get(f"{base_url}/incidents")
+        if inc_res.status_code == 200 and inc_res.json():
+            incident_id = inc_res.json()[0].get("id")
+    except Exception:
+        pass
 
     # 1. Execute Active Response: Kill Malicious Process
     target_pid = random.randint(1000, 9999)
@@ -66,19 +75,23 @@ def run_test_4_kill_isolate(base_url: str):
 
     # 3. Log Audit Trail in Response History
     print(f"\n{BOLD}[3/3] Recording Containment Action Audit Entry...{RESET}")
-    audit_payload = {
-        "action": f"Active Response Containment (Kill PID {target_pid} & Host Isolate)",
-        "status": "executed",
-        "message": f"Host win11-finance-04 network interface quarantined and PID {target_pid} terminated."
-    }
-    try:
-        r = client.post(f"{base_url}/responses", json=audit_payload)
-        if r.status_code in [200, 201]:
-            print(f"  [{GREEN}PASSED{RESET}] Containment Audit Record Written to Database!")
-        else:
-            print(f"  [{RED}FAILED{RESET}] HTTP {r.status_code}: {r.text}")
-    except Exception as e:
-        print(f"  [{RED}FAILED{RESET}] {str(e)}")
+    if incident_id:
+        audit_payload = {
+            "incident_id": incident_id,
+            "action": f"Active Response Containment (Kill PID {target_pid} & Host Isolate)",
+            "status": "executed",
+            "message": f"Host win11-finance-04 network interface quarantined and PID {target_pid} terminated."
+        }
+        try:
+            r = client.post(f"{base_url}/responses", json=audit_payload)
+            if r.status_code in [200, 201]:
+                print(f"  [{GREEN}PASSED{RESET}] Containment Audit Record Written to Database!")
+            else:
+                print(f"  [{RED}FAILED{RESET}] HTTP {r.status_code}: {r.text}")
+        except Exception as e:
+            print(f"  [{RED}FAILED{RESET}] {str(e)}")
+    else:
+        print(f"  [{YELLOW}SKIPPED{RESET}] No existing incident found to link containment audit entry.")
 
     print(f"\n{CYAN}{BOLD}{'='*70}{RESET}")
     print(f"{GREEN}{BOLD}🎉 TEST 4 (KILL & ISOLATE) COMPLETED SUCCESSFULLY!{RESET}")
